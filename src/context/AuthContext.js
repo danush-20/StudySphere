@@ -13,6 +13,11 @@ export function AuthProvider({ children }) {
   const [profileExists, setProfileExists] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const refreshUser = () => {
+    // Forces context to re-read auth.currentUser after reload()
+    setUser(auth.currentUser ? { ...auth.currentUser } : null);
+  };
+
   useEffect(() => {
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -20,7 +25,6 @@ export function AuthProvider({ children }) {
       setUser(currentUser);
 
       if (currentUser) {
-
 
         try {
 
@@ -41,7 +45,6 @@ export function AuthProvider({ children }) {
         }
 
       } else {
-        // User logged out — reset everything
         setProfileExists(false);
         setProfile(null);
       }
@@ -55,7 +58,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, profileExists, loading }}>
+    <AuthContext.Provider value={{ user, profile, profileExists, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

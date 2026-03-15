@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, Text, Button, StyleSheet, Alert } from "react-native";
 
 import { sendEmailVerification, signOut } from "firebase/auth";
 import { auth } from "../services/firebase";
+import { AuthContext } from "../context/AuthContext";
 
 export default function VerifyEmailScreen() {
+
+  const { refreshUser } = useContext(AuthContext);
 
   const [checking, setChecking] = useState(false);
   const [resending, setResending] = useState(false);
@@ -17,12 +20,11 @@ export default function VerifyEmailScreen() {
 
       await auth.currentUser.reload();
 
-      if (!auth.currentUser.emailVerified) {
-        Alert.alert("Not Verified", "Your email hasn't been verified yet. Please check your inbox.");
+      if (auth.currentUser.emailVerified) {
+        refreshUser(); // manually tell context to re-read, AppNavigator will switch screens
+      } else {
+        Alert.alert("Not Verified Yet", "Your email hasn't been verified yet. Please check your inbox.");
       }
-
-      // If verified, AuthContext's onAuthStateChanged will re-fire
-      // and AppNavigator will move them forward automatically
 
     } catch (error) {
       Alert.alert("Error", error.message);
