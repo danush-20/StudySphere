@@ -1,11 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, TextInput, Button, StyleSheet, Text, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 import { doc, setDoc } from "firebase/firestore";
 import { db, auth } from "../services/firebase";
+import { AuthContext } from "../context/AuthContext";
 
 export default function GoogleSignInScreen() {
+
+  const { refreshProfile } = useContext(AuthContext);
 
   const [phone, setPhone] = useState("");
   const [academic, setAcademic] = useState("");
@@ -42,8 +45,6 @@ export default function GoogleSignInScreen() {
 
       console.log("Google user profile created");
       await refreshProfile();
-      // AuthContext listener will detect the new doc and set profileExists = true,
-      // which causes AppNavigator to switch to Home automatically.
 
     } catch (error) {
 
@@ -119,12 +120,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 10
   },
-
   title: {
     fontSize: 20,
     textAlign: "center"
   },
-
   input: {
     borderWidth: 1,
     padding: 10
