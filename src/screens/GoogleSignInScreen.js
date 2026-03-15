@@ -41,6 +41,7 @@ export default function GoogleSignInScreen() {
       });
 
       console.log("Google user profile created");
+      await refreshProfile();
       // AuthContext listener will detect the new doc and set profileExists = true,
       // which causes AppNavigator to switch to Home automatically.
 

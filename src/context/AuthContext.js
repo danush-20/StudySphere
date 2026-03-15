@@ -13,8 +13,32 @@ export function AuthProvider({ children }) {
   const [profileExists, setProfileExists] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const fetchProfile = async (currentUser) => {
+    try {
+      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+      if (userDoc.exists()) {
+        setProfileExists(true);
+        setProfile(userDoc.data());
+      } else {
+        setProfileExists(false);
+        setProfile(null);
+      }
+    } catch (error) {
+      console.log("Error fetching profile:", error.message);
+      setProfileExists(false);
+      setProfile(null);
+    }
+  };
+
+  // Called after setDoc in GoogleSignInScreen to re-check Firestore
+  const refreshProfile = async () => {
+    if (auth.currentUser) {
+      await fetchProfile(auth.currentUser);
+    }
+  };
+
+  // Called after reload() in VerifyEmailScreen to re-read emailVerified
   const refreshUser = () => {
-    // Forces context to re-read auth.currentUser after reload()
     setUser(auth.currentUser ? { ...auth.currentUser } : null);
   };
 
@@ -25,25 +49,7 @@ export function AuthProvider({ children }) {
       setUser(currentUser);
 
       if (currentUser) {
-
-        try {
-
-          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-
-          if (userDoc.exists()) {
-            setProfileExists(true);
-            setProfile(userDoc.data());
-          } else {
-            setProfileExists(false);
-            setProfile(null);
-          }
-
-        } catch (error) {
-          console.log("Error fetching profile:", error.message);
-          setProfileExists(false);
-          setProfile(null);
-        }
-
+        await fetchProfile(currentUser);
       } else {
         setProfileExists(false);
         setProfile(null);
@@ -58,7 +64,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, profileExists, loading, refreshUser }}>
+    <AuthContext.Provider value={{ user, profile, profileExists, loading, refreshUser, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

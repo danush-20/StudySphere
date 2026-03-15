@@ -21,6 +21,8 @@ export default function RegisterScreen({ navigation }) {
 
       console.log("User registered successfully");
 
+      await signOut(auth);
+
       navigation.navigate("Login", {
         message: "Registration successful! Please verify your email before logging in."
       });
