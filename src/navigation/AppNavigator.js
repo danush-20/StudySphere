@@ -11,6 +11,10 @@ import RegisterScreen from "../screens/RegisterScreen";
 import VerifyEmailScreen from "../screens/VerifyEmailScreen";
 import GoogleSignInScreen from "../screens/GoogleSignInScreen";
 import Home from "../screens/Home";
+import StudyGroup from "../screens/StudyGroup";
+import FeedbackScreen from "../screens/FeedbackScreen";
+import ReportIssueScreen from "../screens/ReportIssueScreen";
+import ProfileScreen from "../screens/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -57,9 +61,16 @@ export default function AppNavigator() {
 
         {/* Fully set up */}
         {user && !needsVerification && profileExists && (
-          <Stack.Screen name="Home" component={Home} />
+          <>
+            <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen name="Feedback" component={FeedbackScreen} />
+            <Stack.Screen name="ReportIssue" component={ReportIssueScreen} />
+            <Stack.Screen name="StudyGroup" component={StudyGroup} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+          </>
         )}
 
+        
       </Stack.Navigator>
 
     </NavigationContainer>
