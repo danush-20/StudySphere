@@ -1,32 +1,59 @@
 import React, { useState } from "react";
-import { View, TextInput, Button, StyleSheet, Text } from "react-native";
+import { View, TextInput, Button, StyleSheet, Text, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "../services/firebase";
+import { db, auth } from "../services/firebase";
 
-export default function GoogleSignInScreen({ navigation, route }) {
+export default function GoogleSignInScreen() {
 
-  const { uid, email } = route.params;
-
-  const [phone,setPhone] = useState("");
-  const [academic,setAcademic] = useState("");
-  const [exam,setExam] = useState("");
-  const [location,setLocation] = useState("");
+  const [phone, setPhone] = useState("");
+  const [academic, setAcademic] = useState("");
+  const [exam, setExam] = useState("");
+  const [location, setLocation] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
 
-    await setDoc(doc(db,"users",uid),{
-      email,
-      phone,
-      academic,
-      exam,
-      location
-    });
+    if (!phone || !academic || !exam || !location) {
+      Alert.alert("Missing Fields", "Please fill in all fields before continuing.");
+      return;
+    }
 
-    console.log("Google user profile created");
+    const uid = auth.currentUser?.uid;
+    const email = auth.currentUser?.email;
 
-    navigation.navigate("Home");
+    if (!uid) {
+      Alert.alert("Error", "No authenticated user found. Please try logging in again.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+
+      await setDoc(doc(db, "users", uid), {
+        email,
+        phone,
+        academic,
+        exam,
+        location
+      });
+
+      console.log("Google user profile created");
+      // AuthContext listener will detect the new doc and set profileExists = true,
+      // which causes AppNavigator to switch to Home automatically.
+
+    } catch (error) {
+
+      console.log("Error creating profile:", error.message);
+      Alert.alert("Error", "Failed to save your profile. Please try again.");
+
+    } finally {
+
+      setLoading(false);
+
+    }
 
   };
 
@@ -39,6 +66,7 @@ export default function GoogleSignInScreen({ navigation, route }) {
         placeholder="Phone Number"
         value={phone}
         onChangeText={setPhone}
+        keyboardType="phone-pad"
         style={styles.input}
       />
 
@@ -72,10 +100,15 @@ export default function GoogleSignInScreen({ navigation, route }) {
         style={styles.input}
       />
 
-      <Button title="Continue" onPress={handleSubmit} />
+      <Button
+        title={loading ? "Saving..." : "Continue"}
+        onPress={handleSubmit}
+        disabled={loading}
+      />
 
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({

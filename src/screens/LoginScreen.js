@@ -7,15 +7,12 @@ import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
-import * as AuthSession from "expo-auth-session";
 
 WebBrowser.maybeCompleteAuthSession();
 
-console.log(AuthSession.makeRedirectUri());
-
 export default function LoginScreen({ navigation, route }) {
 
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const message = route?.params?.message;
 
@@ -43,7 +40,7 @@ export default function LoginScreen({ navigation, route }) {
       signInWithCredential(auth, credential)
         .then(() => {
           console.log("Google login success");
-          // AuthContext / Auth listener will move user to Home
+          // AuthContext listener will switch screen automatically
         })
         .catch((error) => {
           console.log(error);
@@ -54,51 +51,27 @@ export default function LoginScreen({ navigation, route }) {
 
   }, [response]);
 
-
-
   const handleLogin = async () => {
 
     try {
 
-      const user = await loginUser(username, password);
-
-      await user.reload();
-
-      if (!user.emailVerified) {
-
-        await auth.signOut();
-
-        Alert.alert(
-          "Email Not Verified",
-          "Please verify your email before logging in."
-        );
-
-        return;
-      }
-
-      console.log("Login successful");
-
-      // Navigation handled automatically by auth state listener
+      await loginUser(email, password);
+      // If email is unverified, AppNavigator will route to VerifyEmailScreen automatically
 
     } catch (error) {
 
       if (error.code === "auth/invalid-credential") {
-
         Alert.alert(
           "Invalid Credentials",
           "The email or password you entered is incorrect."
         );
-
       } else {
-
         Alert.alert("Login Error", error.message);
-
       }
 
     }
 
   };
-
 
   return (
     <View style={styles.container}>
@@ -116,8 +89,10 @@ export default function LoginScreen({ navigation, route }) {
 
       <TextInput
         placeholder="Email"
-        value={username}
-        onChangeText={setUsername}
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
         style={styles.input}
       />
 
@@ -154,7 +129,6 @@ export default function LoginScreen({ navigation, route }) {
   );
 
 }
-
 
 const styles = StyleSheet.create({
 

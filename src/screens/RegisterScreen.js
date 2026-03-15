@@ -4,45 +4,47 @@ import { Picker } from "@react-native-picker/picker";
 
 import { registerUser } from "../services/authService";
 
-
 export default function RegisterScreen({ navigation }) {
 
-  const [email,setEmail] = useState("");
-  const [password,setPassword] = useState("");
-  const [phone,setPhone] = useState("");
-  const [academic,setAcademic] = useState("");
-  const [exam,setExam] = useState("");
-  const [location,setLocation] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [academic, setAcademic] = useState("");
+  const [exam, setExam] = useState("");
+  const [location, setLocation] = useState("");
 
   const handleRegister = async () => {
 
     try {
 
       await registerUser(email, password, phone, academic, exam, location);
+
       console.log("User registered successfully");
+
+      navigation.navigate("Login", {
+        message: "Registration successful! Please verify your email before logging in."
+      });
 
     } catch (error) {
 
       if (error.code === "auth/email-already-in-use") {
-        Alert.alert(
-        "Registration Error",
-        "This email is already registered. Please login or use another email."
-      );
-      //alert("Email already registered. Please login or use another email.");
-        console.log("Email already registered");
-      }
 
-      else if (error.code === "auth/weak-password"){
+        Alert.alert(
+          "Registration Error",
+          "This email is already registered. Please login or use another email."
+        );
+
+      } else if (error.code === "auth/weak-password") {
+
         Alert.alert(
           "Registration Error",
           "Password should be at least 6 characters."
         );
-        console.log("Weak password");
-        //alert("Password should be at least 6 characters.");
-      }
 
-      else {
-        console.log(error.message);
+      } else {
+
+        Alert.alert("Registration Error", error.message);
+
       }
 
     }
@@ -52,12 +54,14 @@ export default function RegisterScreen({ navigation }) {
   return (
     <View style={styles.container}>
 
-      <Text>Create Your Sphere</Text>
+      <Text style={styles.title}>Create Your Sphere</Text>
 
       <TextInput
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
         style={styles.input}
       />
 
@@ -73,6 +77,7 @@ export default function RegisterScreen({ navigation }) {
         placeholder="Phone Number"
         value={phone}
         onChangeText={setPhone}
+        keyboardType="phone-pad"
         style={styles.input}
       />
 
@@ -110,17 +115,22 @@ export default function RegisterScreen({ navigation }) {
 
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({
-  container:{
-    flex:1,
-    justifyContent:"center",
-    padding:20,
-    gap:10
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    gap: 10
   },
-  input:{
-    borderWidth:1,
-    padding:10
+  title: {
+    fontSize: 20,
+    textAlign: "center"
+  },
+  input: {
+    borderWidth: 1,
+    padding: 10
   }
 });

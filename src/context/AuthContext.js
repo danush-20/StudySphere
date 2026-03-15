@@ -1,39 +1,49 @@
-import React, { createContext, useEffect, useState } from "react";
-import { auth } from "../services/firebase";
+import React, { createContext, useState, useEffect } from "react";
+
 import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "../services/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../services/firebase";
 
-export const AuthContext = createContext();
+export const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
 
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [profileExists, setProfileExists] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
 
-      if (firebaseUser) {
+      setUser(currentUser);
 
-        setUser(firebaseUser);
+      if (currentUser) {
 
-        const docRef = doc(db, "users", firebaseUser.uid);
-        const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          setProfile(docSnap.data());
-        } else {
+        try {
+
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+
+          if (userDoc.exists()) {
+            setProfileExists(true);
+            setProfile(userDoc.data());
+          } else {
+            setProfileExists(false);
+            setProfile(null);
+          }
+
+        } catch (error) {
+          console.log("Error fetching profile:", error.message);
+          setProfileExists(false);
           setProfile(null);
         }
 
       } else {
-
-        setUser(null);
+        // User logged out — reset everything
+        setProfileExists(false);
         setProfile(null);
-
       }
 
       setLoading(false);
@@ -45,8 +55,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading }}>
+    <AuthContext.Provider value={{ user, profile, profileExists, loading }}>
       {children}
     </AuthContext.Provider>
   );
-};
+
+}
