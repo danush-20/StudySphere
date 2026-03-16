@@ -167,7 +167,7 @@ export default function ProfileScreen({ navigation }) {
               </TouchableOpacity>
             )}
             <Text style={styles.profileName}>
-              {user?.email?.split("@")[0]}
+              {profile?.username || "User"}
             </Text>
             <Text style={styles.profileEmail}>{user?.email}</Text>
           </View>

@@ -33,8 +33,8 @@ const AVATAR_IMAGES = {
   "3":  require("../../assets/avatar-1.png"),
   "4":  require("../../assets/avatar-1.png"),
   "5":  require("../../assets/avatar-1.png"),
-  "6":  require("../../assets/avatar-1.png"),
-  "7":  require("../../assets/avatar-1.png"),
+  "6":  require("../../assets/avatar-2.png"),
+  "7":  require("../../assets/avatar-2.png"),
   "8":  require("../../assets/avatar-2.png"),
   "9":  require("../../assets/avatar-2.png"),
   "10": require("../../assets/avatar-1.png"),
@@ -96,16 +96,17 @@ export default function StudyGroupScreen({ route, navigation }) {
 
 
       if (data.members) {
-        // members is stored as { uid: true }, so we fetch display names
-        const uids = Object.keys(data.members);
+        // Only show active members (value === true), not those who left (value === false)
+        const uids = Object.entries(data.members)
+          .filter(([, v]) => v === true)
+          .map(([uid]) => uid);
         const memberList = await Promise.all(
           uids.map(async (uid) => {
             try {
               const userDoc = await getDoc(doc(db, "users", uid));
-              const name = userDoc.exists()
-                ? userDoc.data().email?.split("@")[0]
-                : uid;
-              const avatar = userDoc.exists() ? userDoc.data().avatar || "1" : "1";
+              const userData = userDoc.exists() ? userDoc.data() : {};
+              const name = userData.username || userData.email?.split("@")[0] || uid;
+              const avatar = userData.avatar || "1";
               return { id: uid, name, avatar };
             } catch {
               return { id: uid, name: uid };
@@ -339,8 +340,10 @@ export default function StudyGroupScreen({ route, navigation }) {
   const handleLeave = async () => {
     try {
       const uid = auth.currentUser.uid;
+      // Keep in members map so they stay in joined sessions list
+      // Mark as inactive so they don't count as currently in the session
       await updateDoc(doc(db, "studySessions", sessionId), {
-        [`members.${uid}`]: deleteField()
+        [`members.${uid}`]: false
       });
       navigation.navigate("Feedback", { groupName, sessionId });
     } catch (e) {

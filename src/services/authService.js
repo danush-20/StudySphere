@@ -5,7 +5,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { auth, db } from "./firebase";
 
-export const registerUser = async (email, password, phone, academic, exam, location) => {
+export const registerUser = async (email, password, username ,phone, academic, exam, location) => {
 
   console.log("Register button pressed");
 
@@ -20,6 +20,7 @@ export const registerUser = async (email, password, phone, academic, exam, locat
     await setDoc(doc(db, "users", uid), {
       email,
       phone,
+      username,
       academic,
       exam,
       location

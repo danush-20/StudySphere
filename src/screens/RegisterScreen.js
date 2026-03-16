@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, TextInput, Button, StyleSheet, Text, Alert } from "react-native";
+import { View, TextInput, Button, StyleSheet, Text, Alert, TouchableOpacity, Image } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 import { registerUser } from "../services/authService";
@@ -12,12 +12,32 @@ export default function RegisterScreen({ navigation }) {
   const [academic, setAcademic] = useState("");
   const [exam, setExam] = useState("");
   const [location, setLocation] = useState("");
+  const [username, setUsername] = useState("");
+
+  const labEquipment = [
+    "Microscope",
+    "Beaker",
+    "Voltmeter",
+    "Ammeter",
+    "Oscilloscope",
+    "BunsenBurner",
+    "Thermometer",
+    "Pipette",
+    "TestTube",
+    "Centrifuge"
+  ];
+
+  const generateUsername = () => {
+    const random = labEquipment[Math.floor(Math.random() * labEquipment.length)];
+    const number = Math.floor(100 + Math.random() * 900);
+    setUsername(random);
+  };
 
   const handleRegister = async () => {
 
     try {
 
-      await registerUser(email, password, phone, academic, exam, location);
+      await registerUser(email, password, username, phone, academic, exam, location);
 
       console.log("User registered successfully");
 
@@ -74,6 +94,36 @@ export default function RegisterScreen({ navigation }) {
         onChangeText={setPassword}
         style={styles.input}
       />
+
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        
+        <TextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          style={{
+            flex: 1,
+            borderWidth: 1,
+            padding: 10,
+            borderRadius: 5
+          }}
+        />
+
+        <TouchableOpacity
+          onPress={generateUsername}
+          style={{ marginLeft: 8 }}
+        >
+          <Image
+            source={require("../../assets/generate.png")}
+            style={{
+              width: 30,
+              height: 25,
+              resizeMode: "contain"
+            }}
+          />
+        </TouchableOpacity>
+
+      </View>
 
       <TextInput
         placeholder="Phone Number"
