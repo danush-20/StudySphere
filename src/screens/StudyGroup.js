@@ -28,19 +28,21 @@ import { db, auth } from "../services/firebase";
 import { AuthContext } from "../context/AuthContext";
 
 const AVATAR_IMAGES = {
-  "1":  require("../../assets/avatar-1.png"),
-  "2":  require("../../assets/avatar-1.png"),
-  "3":  require("../../assets/avatar-1.png"),
-  "4":  require("../../assets/avatar-1.png"),
-  "5":  require("../../assets/avatar-1.png"),
-  "6":  require("../../assets/avatar-2.png"),
-  "7":  require("../../assets/avatar-2.png"),
-  "8":  require("../../assets/avatar-2.png"),
-  "9":  require("../../assets/avatar-2.png"),
-  "10": require("../../assets/avatar-1.png"),
-  "11": require("../../assets/avatar-1.png"),
-  "12": require("../../assets/avatar-2.png"),
+  "1":  require("../../assets/Avatar-1.png"),
+  "2":  require("../../assets/Avatar-2.png"),
+  "3":  require("../../assets/Avatar-3.png"),
+  "4":  require("../../assets/Avatar-4.png"),
+  "5":  require("../../assets/Avatar-5.png"),
+  "6":  require("../../assets/Avatar-6.png"),
+  "7":  require("../../assets/Avatar-7.png"),
+  "8":  require("../../assets/Avatar-8.png"),
+  "9":  require("../../assets/Avatar-9.png"),
+  "10": require("../../assets/Avatar-10.png"),
+  "11": require("../../assets/Avatar-11.png"),
+  "12": require("../../assets/Avatar-12.png"),
 };
+
+
 
 export default function StudyGroupScreen({ route, navigation }) {
 
@@ -107,6 +109,7 @@ export default function StudyGroupScreen({ route, navigation }) {
               const userData = userDoc.exists() ? userDoc.data() : {};
               const name = userData.username || userData.email?.split("@")[0] || uid;
               const avatar = userData.avatar || "1";
+              console.log("member avatar:", name);
               return { id: uid, name, avatar };
             } catch {
               return { id: uid, name: uid };
@@ -573,7 +576,7 @@ export default function StudyGroupScreen({ route, navigation }) {
                         borderWidth: 1.5,
                         borderColor: isItemHost ? "#c8e6c9" : "#eee"
                       }}
-                      resizeMode="cover"
+                      resizeMode="contain"
                     />
                     <View style={styles.memberInfo}>
                       <Text style={styles.memberName}>

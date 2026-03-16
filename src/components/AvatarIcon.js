@@ -3,18 +3,18 @@ import { View, Image, StyleSheet } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
 const AVATAR_IMAGES = {
-  "1":  require("../../assets/avatar-1.png"),
-  "2":  require("../../assets/avatar-1.png"),
-  "3":  require("../../assets/avatar-1.png"),
-  "4":  require("../../assets/avatar-1.png"),
-  "5":  require("../../assets/avatar-1.png"),
-  "6":  require("../../assets/avatar-1.png"),
-  "7":  require("../../assets/avatar-1.png"),
-  "8":  require("../../assets/avatar-2.png"),
-  "9":  require("../../assets/avatar-2.png"),
-  "10": require("../../assets/avatar-1.png"),
-  "11": require("../../assets/avatar-1.png"),
-  "12": require("../../assets/avatar-2.png"),
+  "1":  require("../../assets/Avatar-1.png"),
+  "2":  require("../../assets/Avatar-2.png"),
+  "3":  require("../../assets/Avatar-3.png"),
+  "4":  require("../../assets/Avatar-4.png"),
+  "5":  require("../../assets/Avatar-5.png"),
+  "6":  require("../../assets/Avatar-6.png"),
+  "7":  require("../../assets/Avatar-7.png"),
+  "8":  require("../../assets/Avatar-8.png"),
+  "9":  require("../../assets/Avatar-9.png"),
+  "10": require("../../assets/Avatar-10.png"),
+  "11": require("../../assets/Avatar-11.png"),
+  "12": require("../../assets/Avatar-12.png"),
 };
 
 export default function AvatarIcon({ size = 34, avatarId }) {
@@ -30,11 +30,7 @@ export default function AvatarIcon({ size = 34, avatarId }) {
     ]}>
       <Image
         source={source}
-        style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2
-        }}
+        style={styles.image}
         resizeMode="cover"
       />
     </View>
@@ -45,6 +41,12 @@ const styles = StyleSheet.create({
   circle: {
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "#c8e6c9"
+    borderColor: "#c8e6c9",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  image: {
+    width: "95%",
+    height: "95%"
   }
 });
