@@ -26,6 +26,8 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../services/firebase";
 import { AuthContext } from "../context/AuthContext";
+import { ref, onValue, off } from 'firebase/database';
+import { rtdb } from '../services/firebase';
 
 const AVATAR_IMAGES = {
   "1":  require("../../assets/Avatar-1.png"),
@@ -48,6 +50,8 @@ export default function StudyGroupScreen({ route, navigation }) {
 
   const { sessionId } = route.params;
   const { user, profile } = useContext(AuthContext);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [lastReadTime, setLastReadTime] = useState(Date.now());
 
   const [groupName, setGroupName] = useState("");
   const [pin, setPin] = useState("");
@@ -109,7 +113,7 @@ export default function StudyGroupScreen({ route, navigation }) {
               const userData = userDoc.exists() ? userDoc.data() : {};
               const name = userData.username || userData.email?.split("@")[0] || uid;
               const avatar = userData.avatar || "1";
-              console.log("member avatar:", name);
+              //console.log("member avatar:", name);
               return { id: uid, name, avatar };
             } catch {
               return { id: uid, name: uid };
@@ -228,6 +232,23 @@ export default function StudyGroupScreen({ route, navigation }) {
     if (b.id === hostUid) return 1;
     return 0;
   });
+
+  // ─── Realtime Database listener for unread chat messages ─────────────────
+
+  useEffect(() => {
+    const messagesRef = ref(rtdb, `chats/${sessionId}/messages`);
+    onValue(messagesRef, snapshot => {
+      const data = snapshot.val();
+      if (!data) return;
+      const count = Object.values(data).filter(
+        msg =>
+          msg.timestamp > lastReadTime &&
+          msg.senderUid !== auth.currentUser?.uid,
+      ).length;
+      setUnreadCount(count);
+    });
+    return () => off(messagesRef);
+  }, [lastReadTime]);
 
   // ─── Firestore timer sync (only host should write, others read) ───────────
 
@@ -382,34 +403,37 @@ export default function StudyGroupScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-
       {/* Header */}
       <View style={styles.header}>
-
         <Text style={styles.logo}>StudySphere</Text>
 
         <View style={styles.groupRow}>
           <Text style={styles.groupName}>{groupName}</Text>
           <TouchableOpacity style={styles.pinBadge} onPress={handleCopyPin}>
-            <Text style={styles.pinText}>PIN  {pin}</Text>
-            <Ionicons name="copy-outline" size={13} color="#666" style={{ marginLeft: 4 }} />
+            <Text style={styles.pinText}>PIN {pin}</Text>
+            <Ionicons
+              name="copy-outline"
+              size={13}
+              color="#666"
+              style={{ marginLeft: 4 }}
+            />
           </TouchableOpacity>
         </View>
-
       </View>
 
       {/* Pomodoro Box */}
       <View style={styles.pomodoroBox}>
-
         <View style={styles.modeRow}>
           <Text style={styles.modeLabel}>
-            {mode === "study" ? "🎯 Study Session" : "☕ Break Time"}
+            {mode === 'study' ? '🎯 Study Session' : '☕ Break Time'}
           </Text>
-          <TouchableOpacity onPress={() => {
-            setTempStudy(studyTime);
-            setTempBreak(breakTime);
-            setSettingsVisible(true);
-          }}>
+          <TouchableOpacity
+            onPress={() => {
+              setTempStudy(studyTime);
+              setTempBreak(breakTime);
+              setSettingsVisible(true);
+            }}
+          >
             <Ionicons name="settings-outline" size={20} color="#555" />
           </TouchableOpacity>
         </View>
@@ -419,9 +443,12 @@ export default function StudyGroupScreen({ route, navigation }) {
         </View>
 
         <View style={styles.timerButtons}>
-
           <TouchableOpacity
-            style={[styles.timerBtn, running ? styles.breakBtn : styles.startBtn, !isHost && styles.btnDisabled]}
+            style={[
+              styles.timerBtn,
+              running ? styles.breakBtn : styles.startBtn,
+              !isHost && styles.btnDisabled,
+            ]}
             onPress={isHost ? handleStartOrBreak : null}
             disabled={!isHost}
           >
@@ -429,23 +456,23 @@ export default function StudyGroupScreen({ route, navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.timerBtn, stopped ? styles.resetBtn : styles.stopBtn, !isHost && styles.btnDisabled]}
+            style={[
+              styles.timerBtn,
+              stopped ? styles.resetBtn : styles.stopBtn,
+              !isHost && styles.btnDisabled,
+            ]}
             onPress={isHost ? handleStopOrReset : null}
             disabled={!isHost || (!running && !stopped)}
           >
             <Text style={styles.timerBtnText}>{stopLabel}</Text>
           </TouchableOpacity>
-
         </View>
-
       </View>
 
       {/* Stats + Tasks */}
       <View style={styles.midSection}>
-
         {/* Session Stats */}
         <View style={styles.statsRow}>
-
           <View style={styles.statCard}>
             <Ionicons name="time-outline" size={18} color="#4CAF50" />
             <Text style={styles.statValue}>{formatFocus()}</Text>
@@ -455,7 +482,11 @@ export default function StudyGroupScreen({ route, navigation }) {
           <View style={styles.statDivider} />
 
           <View style={styles.statCard}>
-            <Ionicons name="checkmark-circle-outline" size={18} color="#2196F3" />
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={18}
+              color="#2196F3"
+            />
             <Text style={styles.statValue}>{sessionsCompleted}</Text>
             <Text style={styles.statLabel}>Sessions Done</Text>
           </View>
@@ -467,17 +498,19 @@ export default function StudyGroupScreen({ route, navigation }) {
             <Text style={styles.statValue}>{members.length}</Text>
             <Text style={styles.statLabel}>Members</Text>
           </View>
-
         </View>
 
         {/* Task Checklist */}
         <View style={styles.taskSection}>
-
           <View style={styles.taskHeader}>
             <Text style={styles.taskTitle}>📋 Session Goals</Text>
             {isHost && (
               <TouchableOpacity onPress={() => setAddingTask(!addingTask)}>
-                <Ionicons name={addingTask ? "close" : "add-circle-outline"} size={22} color="#4CAF50" />
+                <Ionicons
+                  name={addingTask ? 'close' : 'add-circle-outline'}
+                  size={22}
+                  color="#4CAF50"
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -493,26 +526,31 @@ export default function StudyGroupScreen({ route, navigation }) {
                 returnKeyType="done"
                 autoFocus
               />
-              <TouchableOpacity style={styles.taskAddBtn} onPress={handleAddTask}>
+              <TouchableOpacity
+                style={styles.taskAddBtn}
+                onPress={handleAddTask}
+              >
                 <Text style={styles.taskAddBtnText}>Add</Text>
               </TouchableOpacity>
             </View>
           )}
 
           {tasks.length === 0 && !addingTask ? (
-            <Text style={styles.noTasks}>{isHost ? "Tap + to add session goals" : "No goals added yet"}</Text>
+            <Text style={styles.noTasks}>
+              {isHost ? 'Tap + to add session goals' : 'No goals added yet'}
+            </Text>
           ) : (
-            tasks.map((task) => (
+            tasks.map(task => (
               <TouchableOpacity
                 key={task.id}
                 style={styles.taskRow}
-                onPress={() => isHost ? handleToggleTask(task.id) : null}
+                onPress={() => (isHost ? handleToggleTask(task.id) : null)}
                 disabled={!isHost}
               >
                 <Ionicons
-                  name={task.done ? "checkmark-circle" : "ellipse-outline"}
+                  name={task.done ? 'checkmark-circle' : 'ellipse-outline'}
                   size={20}
-                  color={task.done ? "#4CAF50" : "#bbb"}
+                  color={task.done ? '#4CAF50' : '#bbb'}
                 />
                 <Text style={[styles.taskText, task.done && styles.taskDone]}>
                   {task.text}
@@ -520,9 +558,7 @@ export default function StudyGroupScreen({ route, navigation }) {
               </TouchableOpacity>
             ))
           )}
-
         </View>
-
       </View>
 
       {/* Bottom Sheet */}
@@ -533,25 +569,41 @@ export default function StudyGroupScreen({ route, navigation }) {
         handleIndicatorStyle={styles.dragHandle}
       >
         <BottomSheetView style={styles.sheetContent}>
-
           {/* Mic / Media / Chat buttons — always visible, travel with sheet */}
           <View style={styles.iconRow}>
-
-            <TouchableOpacity style={styles.iconBtn}>
+            {/* <TouchableOpacity style={styles.iconBtn}>
               <Ionicons name="mic-outline" size={22} color="#333" />
               <Text style={styles.iconLabel}>Mic</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
-            <TouchableOpacity style={styles.iconBtn}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() =>
+                navigation.navigate('Media', { sessionId, groupName })
+              }
+            >
               <Ionicons name="videocam-outline" size={22} color="#333" />
               <Text style={styles.iconLabel}>Media</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.iconBtn}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => {
+                setLastReadTime(Date.now());
+                setUnreadCount(0);
+                navigation.navigate('Chat', { sessionId, groupName });
+              }}
+            >
               <Ionicons name="chatbubble-outline" size={22} color="#333" />
               <Text style={styles.iconLabel}>Chat</Text>
+              {unreadCount > 0 && (
+                <View style={styles.badgeDot}>
+                  <Text style={styles.badgeDotText}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
-
           </View>
 
           {/* Members list */}
@@ -562,7 +614,7 @@ export default function StudyGroupScreen({ route, navigation }) {
           ) : (
             <FlatList
               data={sortedMembers}
-              keyExtractor={(item) => item.id}
+              keyExtractor={item => item.id}
               scrollEnabled={false}
               renderItem={({ item }) => {
                 const isItemHost = item.id === hostUid;
@@ -570,17 +622,20 @@ export default function StudyGroupScreen({ route, navigation }) {
                 return (
                   <View style={styles.memberRow}>
                     <Image
-                      source={AVATAR_IMAGES[item.avatar] || AVATAR_IMAGES["1"]}
+                      source={AVATAR_IMAGES[item.avatar] || AVATAR_IMAGES['1']}
                       style={{
-                        width: 36, height: 36, borderRadius: 18,
+                        width: 36,
+                        height: 36,
+                        borderRadius: 18,
                         borderWidth: 1.5,
-                        borderColor: isItemHost ? "#c8e6c9" : "#eee"
+                        borderColor: isItemHost ? '#c8e6c9' : '#eee',
                       }}
                       resizeMode="contain"
                     />
                     <View style={styles.memberInfo}>
                       <Text style={styles.memberName}>
-                        {item.name}{isMe ? "  (you)" : ""}
+                        {item.name}
+                        {isMe ? '  (you)' : ''}
                       </Text>
                       {isItemHost && (
                         <View style={styles.hostBadge}>
@@ -594,7 +649,11 @@ export default function StudyGroupScreen({ route, navigation }) {
                         style={styles.dotMenu}
                         onPress={() => setMenuMember(item)}
                       >
-                        <Ionicons name="ellipsis-vertical" size={18} color="#999" />
+                        <Ionicons
+                          name="ellipsis-vertical"
+                          size={18}
+                          color="#999"
+                        />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -608,7 +667,6 @@ export default function StudyGroupScreen({ route, navigation }) {
             <Ionicons name="exit-outline" size={18} color="#fff" />
             <Text style={styles.leaveBtnText}>Leave Session</Text>
           </TouchableOpacity>
-
         </BottomSheetView>
       </BottomSheet>
 
@@ -620,10 +678,9 @@ export default function StudyGroupScreen({ route, navigation }) {
           onPress={() => setMenuMember(null)}
         >
           <View style={styles.actionSheet}>
-
             <Text style={styles.actionSheetName}>
               {menuMember?.name}
-              {menuMember?.id === hostUid ? "  👑" : ""}
+              {menuMember?.id === hostUid ? '  👑' : ''}
             </Text>
 
             {/* Host-only actions */}
@@ -632,7 +689,10 @@ export default function StudyGroupScreen({ route, navigation }) {
                 style={styles.actionItem}
                 onPress={() => {
                   setMenuMember(null);
-                  Alert.alert("Mute", `${menuMember?.name} muted. (Feature coming soon)`);
+                  Alert.alert(
+                    'Mute',
+                    `${menuMember?.name} muted. (Feature coming soon)`,
+                  );
                 }}
               >
                 <Ionicons name="mic-off-outline" size={20} color="#555" />
@@ -645,7 +705,7 @@ export default function StudyGroupScreen({ route, navigation }) {
               style={styles.actionItem}
               onPress={() => {
                 setMenuMember(null);
-                navigation.navigate("ViewProfile", { uid: menuMember?.id });
+                navigation.navigate('ViewProfile', { uid: menuMember?.id });
               }}
             >
               <Ionicons name="person-outline" size={20} color="#555" />
@@ -656,11 +716,16 @@ export default function StudyGroupScreen({ route, navigation }) {
               style={styles.actionItem}
               onPress={() => {
                 setMenuMember(null);
-                navigation.navigate("ReportIssue", { sessionMembers: members, preSelectedUid: menuMember?.id });
+                navigation.navigate('ReportIssue', {
+                  sessionMembers: members,
+                  preSelectedUid: menuMember?.id,
+                });
               }}
             >
               <Ionicons name="flag-outline" size={20} color="#FF9800" />
-              <Text style={[styles.actionText, { color: "#FF9800" }]}>Report</Text>
+              <Text style={[styles.actionText, { color: '#FF9800' }]}>
+                Report
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -669,7 +734,6 @@ export default function StudyGroupScreen({ route, navigation }) {
             >
               <Text style={styles.actionCancelText}>Cancel</Text>
             </TouchableOpacity>
-
           </View>
         </TouchableOpacity>
       </Modal>
@@ -678,7 +742,6 @@ export default function StudyGroupScreen({ route, navigation }) {
       <Modal visible={settingsVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-
             <Text style={styles.modalTitle}>⏱ Pomodoro Settings</Text>
 
             <Text style={styles.modalLabel}>Study Duration (minutes)</Text>
@@ -711,11 +774,9 @@ export default function StudyGroupScreen({ route, navigation }) {
                 <Text style={styles.saveText}>Save</Text>
               </TouchableOpacity>
             </View>
-
           </View>
         </View>
       </Modal>
-
     </SafeAreaView>
   );
 
@@ -878,7 +939,8 @@ const styles = StyleSheet.create({
 
   iconBtn: {
     alignItems: "center",
-    gap: 4
+    gap: 4,
+    position: "relative"
   },
 
   iconLabel: {
@@ -1206,6 +1268,25 @@ const styles = StyleSheet.create({
   saveText: {
     color: "#fff",
     fontWeight: "bold"
-  }
+  },
+
+  badgeDot: {
+  position: "absolute",
+  top: -4,
+  right: -4,
+  backgroundColor: "#e53935",
+  borderRadius: 10,
+  minWidth: 18,
+  height: 18,
+  alignItems: "center",
+  justifyContent: "center",
+  paddingHorizontal: 4
+},
+badgeDotText: {
+  fontSize: 10,
+  color: "#fff",
+  fontWeight: "700"
+}
+  
 
 });

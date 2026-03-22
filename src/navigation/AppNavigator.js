@@ -15,6 +15,8 @@ import StudyGroup from "../screens/StudyGroup";
 import FeedbackScreen from "../screens/FeedbackScreen";
 import ReportIssueScreen from "../screens/ReportIssueScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import MediaScreen from '../screens/MediaScreen';
+import ChatScreen from '../screens/ChatScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,9 +40,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-
         {/* Not logged in */}
         {!user && (
           <>
@@ -67,12 +67,11 @@ export default function AppNavigator() {
             <Stack.Screen name="ReportIssue" component={ReportIssueScreen} />
             <Stack.Screen name="StudyGroup" component={StudyGroup} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="Media" component={MediaScreen} />
+            <Stack.Screen name="Chat" component={ChatScreen} />
           </>
         )}
-
-        
       </Stack.Navigator>
-
     </NavigationContainer>
   );
 
