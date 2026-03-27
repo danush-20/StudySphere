@@ -39,14 +39,14 @@ export default function AvatarIcon({ size = 34, avatarId }) {
 
 const styles = StyleSheet.create({
   circle: {
-    overflow: "hidden",
+    overflow: 'hidden',
     borderWidth: 2,
-    borderColor: "#c8e6c9",
-    alignItems: "center",
-    justifyContent: "center"
+    borderColor: '#D9E2EC',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   image: {
-    width: "95%",
-    height: "95%"
-  }
+    width: '95%',
+    height: '95%',
+  },
 });

@@ -15,18 +15,16 @@ import {
   Modal,
   RefreshControl,
   Alert,
-  FlatList,
   ActivityIndicator,
 } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import AvatarIcon from '../components/AvatarIcon';
+import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import * as Location from 'expo-location';
 
-import { signOut } from 'firebase/auth';
 import { auth, db } from '../services/firebase';
 import { AuthContext } from '../context/AuthContext';
+import AvatarIcon from '../components/AvatarIcon';
 
 import {
   collection,
@@ -41,6 +39,21 @@ import {
   arrayUnion,
 } from 'firebase/firestore';
 
+// ── Design System Tokens ─────────────────────────────────────────────────────
+const COLORS = {
+  primary: '#102A43',
+  secondary: '#D9E2EC',
+  accent: '#334E68',
+  background: '#F0F4F8',
+  surface: '#FFFFFF',
+  text: '#102A43',
+  textSecondary: '#486581',
+  border: '#BCCCDC',
+  white: '#FFFFFF',
+  highlight: '#F0A500',
+};
+
+// ── Quotes ───────────────────────────────────────────────────────────────────
 const QUOTES = [
   {
     text: 'The secret of getting ahead is getting started.',
@@ -148,7 +161,6 @@ const QUOTES = [
 
 const getDailyQuote = () => QUOTES[new Date().getDate() % QUOTES.length];
 
-// Reverse geocode using Nominatim — returns suburb/town name
 const reverseGeocode = async (lat, lng) => {
   try {
     const res = await fetch(
@@ -187,7 +199,6 @@ export default function Home({ navigation }) {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Create group — location & visibility
   const [isPublic, setIsPublic] = useState(false);
   const [groupLocationQuery, setGroupLocationQuery] = useState('');
   const [groupLocationSuggestions, setGroupLocationSuggestions] = useState([]);
@@ -195,7 +206,6 @@ export default function Home({ navigation }) {
   const [locationSearching, setLocationSearching] = useState(false);
   const locationDebounce = useRef(null);
 
-  // Nearby groups
   const [nearbyGroups, setNearbyGroups] = useState([]);
   const [userLocality, setUserLocality] = useState(null);
   const [localityLoading, setLocalityLoading] = useState(false);
@@ -204,8 +214,7 @@ export default function Home({ navigation }) {
   const generatePin = () =>
     Math.floor(100000 + Math.random() * 900000).toString();
 
-  // ── Location search (Nominatim autocomplete) ─────────────────────────────
-
+  // ── Location search ───────────────────────────────────────────────────────
   useEffect(() => {
     if (!groupLocationQuery.trim() || groupLocationQuery.length < 2) {
       setGroupLocationSuggestions([]);
@@ -253,8 +262,7 @@ export default function Home({ navigation }) {
     return { main, secondary, city: main };
   };
 
-  // ── Fetch user's device location ─────────────────────────────────────────
-
+  // ── Device location ───────────────────────────────────────────────────────
   useEffect(() => {
     const fetchUserLocation = async () => {
       setLocalityLoading(true);
@@ -282,8 +290,7 @@ export default function Home({ navigation }) {
     fetchUserLocation();
   }, []);
 
-  // ── Fetch nearby public groups ────────────────────────────────────────────
-
+  // ── Fetch nearby groups ───────────────────────────────────────────────────
   const fetchNearbyGroups = async locality => {
     if (!locality) return;
     const uid = auth.currentUser?.uid;
@@ -316,7 +323,6 @@ export default function Home({ navigation }) {
   };
 
   // ── Fetch sessions ────────────────────────────────────────────────────────
-
   const fetchSessions = useCallback(async () => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
@@ -398,7 +404,6 @@ export default function Home({ navigation }) {
   }, [fetchSessions, userLocality]);
 
   // ── Create session ────────────────────────────────────────────────────────
-
   const handleCreateSession = async () => {
     if (!groupName.trim()) {
       Alert.alert('Required', 'Please enter a group name.');
@@ -432,20 +437,12 @@ export default function Home({ navigation }) {
       setGroupLocationSelected(null);
       setModalVisible(false);
       fetchSessions();
-      // Navigate to StudyGroup with the new session
-      const q = query(
-        collection(db, 'studySessions'),
-        where('host', '==', uid),
-        where('pin', '==', pin),
-      );
-      // Pin is unique so we can find it
     } catch (e) {
       console.log(e.message);
     }
   };
 
   // ── Join session ──────────────────────────────────────────────────────────
-
   const handleJoin = async () => {
     if (!joinPin.trim()) return;
     try {
@@ -489,7 +486,6 @@ export default function Home({ navigation }) {
         );
         return;
       }
-
       await updateDoc(doc(db, 'studySessions', sessionId), {
         joinRequests: arrayUnion({
           uid,
@@ -545,7 +541,6 @@ export default function Home({ navigation }) {
       await updateDoc(doc(db, 'studySessions', sessionId), {
         [`members.${uid}`]: true,
       });
-      setJoinModalVisible(false);
       navigation.navigate('StudyGroup', { sessionId });
     } catch (e) {
       console.log(e.message);
@@ -589,118 +584,155 @@ export default function Home({ navigation }) {
 
   const greeting = () => {
     const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return 'Good Morning';
+    if (h < 17) return 'Good Afternoon';
+    return 'Good Evening';
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <AvatarIcon size={36} />
+        <TouchableOpacity
+          style={styles.avatarButton}
+          onPress={() => navigation.navigate('Profile')}
+        >
+          <AvatarIcon size={48} />
         </TouchableOpacity>
-        <Text style={styles.logo}>StudySphere</Text>
+        <Text style={styles.logoText}>StudySphere</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
-        style={styles.scroll}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Greeting */}
-        <View style={styles.greetingRow}>
-          <Text style={styles.greeting}>{greeting()},</Text>
-          <Text style={styles.username}>
+        <Animated.View entering={FadeInDown.delay(200).duration(800)}>
+          <Text style={styles.tagline}>FOCUS SANCTUARY</Text>
+          <Text style={styles.greeting}>
+            {greeting()},{'\n'}
             {profile?.username || user?.email?.split('@')[0]} 👋
           </Text>
-        </View>
+        </Animated.View>
 
         {/* Daily Quote */}
-        <View style={styles.quoteCard}>
-          <Ionicons
-            name="bulb-outline"
-            size={18}
-            color="#f0a500"
-            style={{ marginBottom: 8 }}
-          />
-          <Text style={styles.quoteText}>"{quote.text}"</Text>
-          <Text style={styles.quoteAuthor}>— {quote.author}</Text>
-        </View>
+        <Animated.View
+          entering={FadeInDown.delay(400).duration(800)}
+          style={styles.quoteCard}
+        >
+          <View style={styles.quoteIconCircle}>
+            <Ionicons name="bulb" size={20} color={COLORS.highlight} />
+          </View>
+          <View style={styles.quoteContent}>
+            <Text style={styles.quoteText}>"{quote.text}"</Text>
+            <Text style={styles.quoteAuthor}>
+              — {quote.author.toUpperCase()}
+            </Text>
+          </View>
+        </Animated.View>
 
         {/* Pending Join Requests */}
         {pendingRequests.length > 0 && (
           <View style={styles.section}>
-            <View style={styles.sectionHeaderRow}>
+            <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Join Requests</Text>
-              <View style={styles.badgeCount}>
-                <Text style={styles.badgeCountText}>
-                  {pendingRequests.length}
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {pendingRequests.length} NEW
                 </Text>
               </View>
             </View>
             {pendingRequests.map((req, i) => (
-              <View key={`${req.uid}-${i}`} style={styles.requestCard}>
+              <Animated.View
+                key={`${req.uid}-${i}`}
+                entering={FadeInDown.delay(500)}
+                style={styles.requestCard}
+              >
+                <View style={styles.requestAvatar}>
+                  <Text style={styles.avatarInitial}>
+                    {req.username?.slice(0, 2).toUpperCase()}
+                  </Text>
+                </View>
                 <View style={styles.requestInfo}>
-                  <Text style={styles.requestUsername}>{req.username}</Text>
-                  <Text style={styles.requestSession}>
+                  <Text style={styles.requestName}>{req.username}</Text>
+                  <Text style={styles.requestSub}>
                     wants to join "{req.sessionName}"
                   </Text>
                 </View>
                 <View style={styles.requestActions}>
                   <TouchableOpacity
-                    style={styles.declineBtn}
+                    style={styles.actionButtonClose}
                     onPress={() => handleDecline(req)}
                   >
-                    <Ionicons name="close" size={16} color="#e53935" />
+                    <Ionicons name="close" size={20} color="#E53E3E" />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={styles.approveBtn}
+                    style={styles.actionButtonCheck}
                     onPress={() => handleApprove(req)}
                   >
-                    <Ionicons name="checkmark" size={16} color="#fff" />
+                    <Ionicons name="checkmark" size={20} color={COLORS.white} />
                   </TouchableOpacity>
                 </View>
-              </View>
+              </Animated.View>
             ))}
           </View>
         )}
 
-        {/* Your Sessions (hosted) */}
+        {/* Your Sessions */}
         {myGroups.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Your Sessions</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {myGroups.map(group => (
-                <TouchableOpacity
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.horizontalScroll}
+            >
+              {myGroups.map((group, index) => (
+                // FIX 1: styles moved to Animated.View so Reanimated owns the styled element
+                <Animated.View
                   key={group.id}
+                  entering={FadeInRight.delay(600 + index * 100)}
                   style={[styles.sessionCard, styles.hostedCard]}
-                  onPress={() => joinDirect(group.id)}
                 >
-                  <View style={styles.sessionCardTop}>
-                    <View style={styles.hostBadge}>
-                      <Text style={styles.hostBadgeText}>HOST</Text>
+                  <TouchableOpacity
+                    onPress={() => joinDirect(group.id)}
+                    activeOpacity={0.85}
+                    style={{ flex: 1 }}
+                  >
+                    <View style={styles.cardHeader}>
+                      <View style={styles.cardBadge}>
+                        <Text style={styles.cardBadgeText}>HOSTED</Text>
+                      </View>
                     </View>
-                    <Text style={styles.sessionCardMembers}>
-                      <Ionicons name="people-outline" size={12} />{' '}
-                      {getMemberCount(group)}
+                    <Text style={styles.cardTitle} numberOfLines={2}>
+                      {group.groupName}
                     </Text>
-                  </View>
-                  <Text style={styles.sessionCardName} numberOfLines={2}>
-                    {group.groupName}
-                  </Text>
-                  <Text style={styles.sessionCardSubject} numberOfLines={1}>
-                    {group.subject}
-                  </Text>
-                  <View style={styles.openBtn}>
-                    <Text style={styles.openBtnText}>Open →</Text>
-                  </View>
-                </TouchableOpacity>
+                    {group.subject ? (
+                      <Text style={styles.cardSubject} numberOfLines={1}>
+                        {group.subject}
+                      </Text>
+                    ) : null}
+                    <View style={styles.cardFooter}>
+                      <Ionicons
+                        name="people-outline"
+                        size={14}
+                        color={COLORS.white}
+                        style={{ opacity: 0.7 }}
+                      />
+                      <Text style={styles.memberStatusText}>
+                        {getMemberCount(group)} active now
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </Animated.View>
               ))}
+              <View style={{ width: 24 }} />
             </ScrollView>
           </View>
         )}
@@ -709,122 +741,135 @@ export default function Home({ navigation }) {
         {joinedGroups.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Joined Sessions</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {joinedGroups.map(group => (
-                <TouchableOpacity
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.horizontalScroll}
+            >
+              {joinedGroups.map((group, index) => (
+                // FIX 1: styles moved to Animated.View
+                <Animated.View
                   key={group.id}
-                  style={[styles.sessionCard, styles.joinedCard]}
-                  onPress={() => joinDirect(group.id)}
+                  entering={FadeInRight.delay(700 + index * 100)}
+                  style={styles.joinedCard}
                 >
-                  <View style={styles.sessionCardTop}>
-                    <View style={[styles.hostBadge, styles.memberBadge]}>
-                      <Text
-                        style={[styles.hostBadgeText, styles.memberBadgeText]}
-                      >
-                        MEMBER
+                  <TouchableOpacity
+                    onPress={() => joinDirect(group.id)}
+                    activeOpacity={0.85}
+                    style={{ flex: 1 }}
+                  >
+                    <View style={styles.iconCircle}>
+                      <Ionicons
+                        name="people"
+                        size={20}
+                        color={COLORS.primary}
+                      />
+                    </View>
+                    <Text style={styles.joinedTitle} numberOfLines={2}>
+                      {group.groupName}
+                    </Text>
+                    <Text style={styles.joinedSub} numberOfLines={1}>
+                      {group.subject}
+                    </Text>
+                    <View style={styles.joinedFooter}>
+                      <View style={styles.memberBadgeSmall}>
+                        <Text style={styles.memberBadgeTextSmall}>MEMBER</Text>
+                      </View>
+                      <Text style={styles.memberTotalText}>
+                        {getMemberCount(group)} Members
                       </Text>
                     </View>
-                    <Text style={styles.sessionCardMembers}>
-                      <Ionicons name="people-outline" size={12} />{' '}
-                      {getMemberCount(group)}
-                    </Text>
-                  </View>
-                  <Text style={styles.sessionCardName} numberOfLines={2}>
-                    {group.groupName}
-                  </Text>
-                  <Text style={styles.sessionCardSubject} numberOfLines={1}>
-                    {group.subject}
-                  </Text>
-                  <View style={[styles.openBtn, styles.rejoinBtn]}>
-                    <Text style={styles.openBtnText}>Rejoin →</Text>
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </Animated.View>
               ))}
+              <View style={{ width: 24 }} />
             </ScrollView>
           </View>
         )}
 
-        {/* Nearby Groups */}
+        {/* Nearby Sessions */}
         <View style={styles.section}>
-          <View style={styles.sectionHeaderRow}>
-            <Ionicons name="location-outline" size={14} color="#888" />
-            <Text style={[styles.sectionTitle, { marginLeft: 4 }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
               {userLocality ? `Near You · ${userLocality}` : 'Nearby Sessions'}
             </Text>
             {localityLoading && (
               <ActivityIndicator
                 size="small"
-                color="#aaa"
+                color={COLORS.accent}
                 style={{ marginLeft: 6 }}
               />
             )}
           </View>
 
           {!userLocality && !localityLoading && (
-            <View style={styles.locationPrompt}>
-              <Ionicons name="location-outline" size={20} color="#bbb" />
-              <Text style={styles.locationPromptText}>
+            <View style={styles.emptyPrompt}>
+              <Ionicons
+                name="location-outline"
+                size={20}
+                color={COLORS.border}
+              />
+              <Text style={styles.emptyPromptText}>
                 Allow location access to see nearby groups
               </Text>
             </View>
           )}
 
           {userLocality && nearbyGroups.length === 0 && (
-            <View style={styles.locationPrompt}>
-              <Ionicons name="people-outline" size={20} color="#bbb" />
-              <Text style={styles.locationPromptText}>
+            <View style={styles.emptyPrompt}>
+              <Ionicons name="people-outline" size={20} color={COLORS.border} />
+              <Text style={styles.emptyPromptText}>
                 No public groups found near {userLocality}
               </Text>
             </View>
           )}
 
-          {nearbyGroups.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {nearbyGroups.map(group => (
-                <View
-                  key={group.id}
-                  style={[styles.sessionCard, styles.nearbyCard]}
-                >
-                  <View style={styles.sessionCardTop}>
-                    <View style={styles.publicBadge}>
-                      <Ionicons name="earth-outline" size={9} color="#6a1b9a" />
-                      <Text style={styles.publicBadgeText}>PUBLIC</Text>
-                    </View>
-                    <Text style={styles.sessionCardMembers}>
-                      <Ionicons name="people-outline" size={12} />{' '}
-                      {getMemberCount(group)}
-                    </Text>
-                  </View>
-                  <Text style={styles.sessionCardName} numberOfLines={2}>
-                    {group.groupName}
+          {nearbyGroups.map((group, index) => (
+            // FIX 1: styles moved to Animated.View
+            <Animated.View
+              key={group.id}
+              entering={FadeInDown.delay(800 + index * 100)}
+              style={styles.nearbyCard}
+            >
+              <View style={styles.nearbyHeader}>
+                <View style={styles.locationTag}>
+                  <Ionicons name="location" size={12} color={COLORS.primary} />
+                  <Text style={styles.locationTagText}>
+                    {group.locationDisplay || group.locationCity} · PUBLIC
                   </Text>
-                  <Text style={styles.sessionCardSubject} numberOfLines={1}>
-                    {group.subject}
-                  </Text>
-                  <Text style={styles.nearbyLocation} numberOfLines={1}>
-                    <Ionicons name="location-outline" size={11} />{' '}
-                    {group.locationDisplay || group.locationCity}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.requestBtn}
-                    onPress={() => handleRequestNearby(group)}
-                  >
-                    <Text style={styles.requestBtnText}>Request to Join</Text>
-                  </TouchableOpacity>
                 </View>
-              ))}
-            </ScrollView>
-          )}
+                <TouchableOpacity onPress={() => handleRequestNearby(group)}>
+                  <Text style={styles.joinNowText}>JOIN NOW</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.nearbyTitle} numberOfLines={2}>
+                {group.groupName}
+              </Text>
+              <Text style={styles.nearbySub} numberOfLines={2}>
+                {group.subject}
+              </Text>
+              <View style={styles.nearbyFooter}>
+                <Ionicons
+                  name="people-outline"
+                  size={13}
+                  color={COLORS.textSecondary}
+                />
+                <Text style={styles.nearbyMemberText}>
+                  {getMemberCount(group)} members
+                </Text>
+              </View>
+            </Animated.View>
+          ))}
         </View>
 
-        {/* Empty state */}
+        {/* Empty State */}
         {myGroups.length === 0 &&
           joinedGroups.length === 0 &&
           pendingRequests.length === 0 &&
           nearbyGroups.length === 0 &&
           !localityLoading && (
             <View style={styles.emptyState}>
-              <Ionicons name="people-outline" size={48} color="#ddd" />
+              <Ionicons name="people-outline" size={48} color={COLORS.border} />
               <Text style={styles.emptyTitle}>No active sessions</Text>
               <Text style={styles.emptySubtitle}>
                 Create or join a study group to get started
@@ -832,45 +877,78 @@ export default function Home({ navigation }) {
             </View>
           )}
 
-        <View style={{ height: 20 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* CREATE MODAL */}
-      <Modal visible={modalVisible} transparent animationType="fade">
+      {/* Bottom Action Bar */}
+      <View style={styles.bottomBar}>
         <TouchableOpacity
-          style={styles.createOverlay}
+          style={styles.secondaryButton}
+          onPress={() => {
+            fetchSessions();
+            setJoinModalVisible(true);
+          }}
+        >
+          <Ionicons name="search-outline" size={20} color={COLORS.primary} />
+          <Text style={styles.secondaryButtonText}>Join Session</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.primaryButton}
+          onPress={() => {
+            setGroupName('');
+            setSubject('');
+            setDescription('');
+            setIsPublic(false);
+            setGroupLocationQuery('');
+            setGroupLocationSelected(null);
+            setModalVisible(true);
+          }}
+        >
+          <Ionicons name="add" size={24} color={COLORS.white} />
+          <Text style={styles.primaryButtonText}>Create Session</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* CREATE MODAL — FIX 2: outer TouchableOpacity dismisses, inner blocks propagation */}
+      <Modal visible={modalVisible} transparent animationType="slide">
+        <TouchableOpacity
+          style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
-          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => {}}
+            style={styles.modalContent}
+          >
+            <Text style={styles.modalTitle}>Create Study Group</Text>
             <ScrollView
-              style={styles.createModalBox}
-              contentContainerStyle={{ paddingBottom: 40 }}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
-              <Text style={styles.modalTitle}>Create Study Group</Text>
-
               <TextInput
                 placeholder="Group Name *"
+                placeholderTextColor={COLORS.textSecondary}
                 value={groupName}
                 onChangeText={setGroupName}
-                style={styles.input}
+                style={styles.modalInput}
               />
               <TextInput
                 placeholder="Subject"
+                placeholderTextColor={COLORS.textSecondary}
                 value={subject}
                 onChangeText={setSubject}
-                style={styles.input}
+                style={styles.modalInput}
               />
               <TextInput
                 placeholder="Description"
+                placeholderTextColor={COLORS.textSecondary}
                 value={description}
                 onChangeText={setDescription}
-                style={styles.input}
+                style={styles.modalInput}
               />
 
-              {/* Public / Private toggle */}
+              {/* Public/Private Toggle */}
               <TouchableOpacity
                 style={styles.toggleRow}
                 onPress={() => setIsPublic(!isPublic)}
@@ -900,7 +978,7 @@ export default function Home({ navigation }) {
                 </View>
               </TouchableOpacity>
 
-              {/* Location search — only for public groups */}
+              {/* Location search for public groups */}
               {isPublic && (
                 <View style={{ zIndex: 99 }}>
                   <Text style={styles.locationLabel}>Group Location *</Text>
@@ -913,13 +991,13 @@ export default function Home({ navigation }) {
                     <Ionicons
                       name="location-outline"
                       size={15}
-                      color="#aaa"
+                      color={COLORS.border}
                       style={{ marginRight: 6 }}
                     />
                     <TextInput
-                      style={styles.locationInput}
+                      style={styles.locationSearchInput}
                       placeholder="Search your area, locality..."
-                      placeholderTextColor="#bbb"
+                      placeholderTextColor={COLORS.textSecondary}
                       value={groupLocationQuery}
                       onChangeText={t => {
                         setGroupLocationQuery(t);
@@ -928,7 +1006,7 @@ export default function Home({ navigation }) {
                       autoCorrect={false}
                     />
                     {locationSearching && (
-                      <ActivityIndicator size="small" color="#2e7d32" />
+                      <ActivityIndicator size="small" color={COLORS.accent} />
                     )}
                     {groupLocationSelected && (
                       <TouchableOpacity
@@ -937,7 +1015,11 @@ export default function Home({ navigation }) {
                           setGroupLocationSelected(null);
                         }}
                       >
-                        <Ionicons name="close-circle" size={16} color="#ccc" />
+                        <Ionicons
+                          name="close-circle"
+                          size={16}
+                          color={COLORS.border}
+                        />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -968,7 +1050,7 @@ export default function Home({ navigation }) {
                               <Ionicons
                                 name="location-outline"
                                 size={13}
-                                color="#888"
+                                color={COLORS.accent}
                                 style={{ marginRight: 6 }}
                               />
                               <View style={{ flex: 1 }}>
@@ -993,429 +1075,475 @@ export default function Home({ navigation }) {
               )}
 
               <TouchableOpacity
-                style={styles.modalButton}
+                style={styles.modalPrimaryButton}
                 onPress={handleCreateSession}
               >
-                <Text style={styles.modalButtonText}>
+                <Text style={styles.modalPrimaryButtonText}>
                   {isPublic ? 'Create Public Group' : 'Create Group'}
                 </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalCloseButtonText}>Cancel</Text>
               </TouchableOpacity>
             </ScrollView>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
 
-      {/* JOIN MODAL */}
+      {/* JOIN MODAL — FIX 2: same backdrop dismiss pattern */}
       <Modal visible={joinModalVisible} transparent animationType="fade">
         <TouchableOpacity
-          style={styles.overlay}
+          style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setJoinModalVisible(false)}
         >
           <TouchableOpacity
             activeOpacity={1}
-            style={styles.modalBox}
             onPress={() => {}}
+            style={styles.modalContent}
           >
             <Text style={styles.modalTitle}>Join Study Group</Text>
             <TextInput
               placeholder="Enter PIN to request joining"
+              placeholderTextColor={COLORS.textSecondary}
               value={joinPin}
               onChangeText={setJoinPin}
-              style={styles.input}
+              style={styles.modalInput}
               keyboardType="numeric"
             />
             <Text style={styles.joinNote}>
-              {'  '}Join requests require host approval
+              Join requests require host approval
             </Text>
-            <TouchableOpacity style={styles.modalButton} onPress={handleJoin}>
-              <Text style={styles.modalButtonText}>Send Join Request</Text>
+            <TouchableOpacity
+              style={styles.modalPrimaryButton}
+              onPress={handleJoin}
+            >
+              <Text style={styles.modalPrimaryButtonText}>
+                Send Join Request
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setJoinModalVisible(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Cancel</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-
-      {/* Bottom Buttons */}
-      <View style={styles.bottomButtons}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            fetchSessions();
-            setJoinModalVisible(true);
-          }}
-        >
-          <Ionicons name="enter-outline" size={18} color="#fff" />
-          <Text style={styles.buttonText}>Join</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            setGroupName('');
-            setSubject('');
-            setDescription('');
-            setIsPublic(false);
-            setGroupLocationQuery('');
-            setGroupLocationSelected(null);
-            setModalVisible(true);
-          }}
-        >
-          <Ionicons name="add-circle-outline" size={18} color="#fff" />
-          <Text style={styles.buttonText}>Create</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  safeArea: { flex: 1, backgroundColor: COLORS.background },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 0.5,
-    borderColor: '#eee',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    backgroundColor: COLORS.background,
   },
-  logo: { fontSize: 20, fontWeight: '800', color: '#2e7d32' },
-
-  searchContainer: {
-    flexDirection: 'row',
+  avatarButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: COLORS.secondary,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 16,
-    marginTop: 10,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#eee',
   },
-  searchInput: { flex: 1, fontSize: 14, color: '#333' },
+  logoText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.primary,
+    letterSpacing: -0.5,
+  },
 
-  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 24 },
 
-  greetingRow: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 4 },
-  greeting: { fontSize: 14, color: '#888' },
-  username: { fontSize: 22, fontWeight: '700', color: '#1a1a1a', marginTop: 2 },
+  tagline: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.accent,
+    letterSpacing: 2,
+    marginBottom: 4,
+    opacity: 0.6,
+    marginTop: 8,
+  },
+  greeting: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: COLORS.primary,
+    lineHeight: 36,
+    marginBottom: 24,
+  },
 
   quoteCard: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    backgroundColor: '#fffde7',
-    borderRadius: 14,
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#f0a500',
-  },
-  quoteText: {
-    fontSize: 14,
-    color: '#555',
-    lineHeight: 22,
-    fontStyle: 'italic',
-    marginBottom: 8,
-  },
-  quoteAuthor: { fontSize: 12, color: '#f0a500', fontWeight: '600' },
-
-  section: { marginTop: 24, paddingHorizontal: 16 },
-  sectionHeaderRow: {
+    backgroundColor: COLORS.secondary,
+    borderRadius: 24,
+    padding: 24,
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    alignItems: 'flex-start',
+    marginBottom: 32,
+    opacity: 0.9,
   },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#888',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  badgeCount: {
-    backgroundColor: '#e53935',
-    borderRadius: 10,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-  },
-  badgeCountText: { fontSize: 11, color: '#fff', fontWeight: '700' },
-
-  requestCard: {
-    backgroundColor: '#fff',
+  quoteIconCircle: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  requestInfo: { flex: 1 },
-  requestUsername: { fontSize: 14, fontWeight: '700', color: '#222' },
-  requestSession: { fontSize: 12, color: '#888', marginTop: 2 },
-  requestActions: { flexDirection: 'row', gap: 8 },
-  declineBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1.5,
-    borderColor: '#ffcdd2',
-    alignItems: 'center',
+    backgroundColor: COLORS.white,
     justifyContent: 'center',
-  },
-  approveBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#2e7d32',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginRight: 16,
   },
-
-  sessionCard: {
-    width: 160,
-    marginRight: 12,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  joinedCard: { backgroundColor: '#f0f7ff' },
-  hostedCard: { backgroundColor: '#f1f8e9' },
-  nearbyCard: { backgroundColor: '#f3e5f5' },
-  sessionCardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  quoteContent: { flex: 1 },
+  quoteText: {
+    fontSize: 15,
+    fontStyle: 'italic',
+    color: COLORS.text,
+    lineHeight: 22,
     marginBottom: 10,
   },
-  hostBadge: {
-    backgroundColor: '#e8f5e9',
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  hostBadgeText: {
-    fontSize: 9,
+  quoteAuthor: {
+    fontSize: 11,
     fontWeight: '700',
-    color: '#2e7d32',
-    letterSpacing: 0.5,
+    color: COLORS.accent,
+    letterSpacing: 1,
   },
-  memberBadge: { backgroundColor: '#e3f2fd' },
-  memberBadgeText: { color: '#1565c0' },
-  publicBadge: {
+
+  section: { marginBottom: 32 },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: { fontSize: 18, fontWeight: '800', color: COLORS.primary },
+  badge: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  badgeText: { color: COLORS.white, fontSize: 10, fontWeight: '900' },
+
+  requestCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    backgroundColor: '#ede7f6',
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    marginBottom: 10,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  publicBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#6a1b9a',
-    letterSpacing: 0.5,
+  requestAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#BEE3F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
-  sessionCardMembers: { fontSize: 12, color: '#aaa' },
-  sessionCardName: {
-    fontSize: 14,
+  avatarInitial: { fontWeight: '800', color: COLORS.primary, fontSize: 14 },
+  requestInfo: { flex: 1 },
+  requestName: { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  requestSub: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
+  requestActions: { flexDirection: 'row', gap: 8 },
+  actionButtonClose: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#FED7D7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButtonCheck: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  horizontalScroll: { marginLeft: -24, paddingLeft: 24 },
+
+  // Session card — styles now live here so Animated.View owns them (Fix 1)
+  sessionCard: { width: 280, borderRadius: 24, padding: 24, marginRight: 16 },
+  hostedCard: { backgroundColor: COLORS.primary },
+  cardHeader: { marginBottom: 16 },
+  cardBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  cardBadgeText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  cardTitle: {
+    fontSize: 22,
     fontWeight: '700',
-    color: '#222',
+    color: COLORS.white,
+    marginBottom: 6,
+  },
+  cardSubject: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 16,
+  },
+  cardFooter: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  memberStatusText: { color: COLORS.white, fontSize: 12, opacity: 0.7 },
+
+  // Joined card — styles now live here so Animated.View owns them (Fix 1)
+  joinedCard: {
+    width: 220,
+    backgroundColor: COLORS.secondary,
+    borderRadius: 24,
+    padding: 20,
+    marginRight: 16,
+  },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  joinedTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
     marginBottom: 4,
   },
-  sessionCardSubject: { fontSize: 12, color: '#888', marginBottom: 6 },
-  nearbyLocation: { fontSize: 11, color: '#aaa', marginBottom: 10 },
-  openBtn: {
-    backgroundColor: '#2e7d32',
-    borderRadius: 8,
-    paddingVertical: 6,
+  joinedSub: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 16 },
+  joinedFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  rejoinBtn: { backgroundColor: '#1565c0' },
-  openBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  requestBtn: {
-    backgroundColor: '#6a1b9a',
-    borderRadius: 8,
-    paddingVertical: 6,
-    alignItems: 'center',
+  memberBadgeSmall: {
+    backgroundColor: COLORS.border,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  requestBtnText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  memberBadgeTextSmall: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.accent,
+  },
+  memberTotalText: { fontSize: 11, color: COLORS.textSecondary },
 
-  locationPrompt: {
+  // Nearby card — styles now live here so Animated.View owns them (Fix 1)
+  nearbyCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  nearbyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  locationTag: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  locationTagText: { fontSize: 11, fontWeight: '700', color: COLORS.accent },
+  joinNowText: { fontSize: 12, fontWeight: '800', color: COLORS.primary },
+  nearbyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  nearbySub: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 10 },
+  nearbyFooter: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  nearbyMemberText: { fontSize: 12, color: COLORS.textSecondary },
+
+  emptyPrompt: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingVertical: 16,
   },
-  locationPromptText: { fontSize: 13, color: '#bbb' },
-
-  emptyState: { alignItems: 'center', paddingTop: 60, paddingHorizontal: 40 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#bbb', marginTop: 16 },
+  emptyPromptText: { fontSize: 13, color: COLORS.border },
+  emptyState: { alignItems: 'center', paddingTop: 40, paddingHorizontal: 40 },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.border,
+    marginTop: 16,
+  },
   emptySubtitle: {
     fontSize: 13,
-    color: '#ccc',
+    color: COLORS.border,
     textAlign: 'center',
     marginTop: 6,
     lineHeight: 20,
   },
 
-  bottomButtons: {
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+    paddingTop: 12,
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 12,
-    borderTopWidth: 0.5,
-    borderColor: '#eee',
-    backgroundColor: '#fff',
+    gap: 12,
   },
-  button: {
-    backgroundColor: '#2e7d32',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 10,
+  primaryButton: {
+    flex: 1.2,
+    height: 56,
+    backgroundColor: COLORS.primary,
+    borderRadius: 16,
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-
-  overlay: {
+  primaryButtonText: { color: COLORS.white, fontSize: 16, fontWeight: '700' },
+  secondaryButton: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    height: 56,
+    backgroundColor: COLORS.surface,
+    borderRadius: 16,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  createOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  createModalBox: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    maxHeight: '85%',
-    flexGrow: 0,
-  },
-  modalScrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  }, // used by join modal
-  modalBox: {
-    width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    maxHeight: '90%',
-  },
-  createModalBox: {
-    width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    maxHeight: '90%',
-  },
-  modalTitle: {
+  secondaryButtonText: {
+    color: COLORS.primary,
     fontSize: 16,
     fontWeight: '700',
-    color: '#222',
-    marginBottom: 12,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 10,
-    fontSize: 14,
+
+  // Modal — Fix 2: outer is TouchableOpacity that dismisses
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(16, 42, 67, 0.4)',
+    justifyContent: 'flex-end',
   },
-  joinNote: { fontSize: 12, color: '#aaa', marginTop: 8, marginLeft: 2 },
-  modalButton: {
-    backgroundColor: '#2e7d32',
-    borderRadius: 10,
-    padding: 13,
-    marginTop: 14,
-    alignItems: 'center',
+  modalContent: {
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 32,
+    paddingBottom: 48,
+    maxHeight: '85%',
   },
-  modalButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
-  cube: {
-    width: '30%',
-    aspectRatio: 1,
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
-    margin: 5,
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: COLORS.primary,
+    marginBottom: 24,
+  },
+  modalInput: {
+    backgroundColor: COLORS.secondary,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: COLORS.text,
+    marginBottom: 16,
+  },
+  joinNote: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 16 },
+  modalPrimaryButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 16,
+    height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 4,
+    marginTop: 8,
   },
+  modalPrimaryButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  modalCloseButton: { marginTop: 16, alignItems: 'center', paddingBottom: 8 },
+  modalCloseButtonText: { color: COLORS.textSecondary, fontWeight: '600' },
 
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 14,
+    marginBottom: 16,
     padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 10,
-    flexWrap: 'nowrap',
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
   },
   toggleSwitch: {
     width: 44,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#ddd',
+    backgroundColor: COLORS.border,
     justifyContent: 'center',
     paddingHorizontal: 2,
   },
-  toggleSwitchOn: { backgroundColor: '#2e7d32' },
+  toggleSwitchOn: { backgroundColor: COLORS.primary },
   toggleThumb: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
   },
   toggleThumbOn: { alignSelf: 'flex-end' },
-  toggleLabel: { fontSize: 13, fontWeight: '600', color: '#333' },
-  toggleSub: { fontSize: 11, color: '#aaa', marginTop: 1 },
+  toggleLabel: { fontSize: 13, fontWeight: '600', color: COLORS.text },
+  toggleSub: { fontSize: 11, color: COLORS.textSecondary, marginTop: 1 },
 
   locationLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#555',
-    marginTop: 12,
-    marginBottom: 4,
+    color: COLORS.accent,
+    marginBottom: 8,
   },
   locationInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 10,
+    borderColor: COLORS.border,
+    borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 10,
-    backgroundColor: '#fafafa',
+    backgroundColor: COLORS.background,
+    marginBottom: 4,
   },
-  locationInputSelected: { borderColor: '#2e7d32' },
-  locationInput: { flex: 1, fontSize: 14, color: '#222' },
+  locationInputSelected: { borderColor: COLORS.primary },
+  locationSearchInput: { flex: 1, fontSize: 14, color: COLORS.text },
   locationDropdown: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 10,
-    marginTop: 4,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -1427,8 +1555,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 0.5,
-    borderColor: '#f0f0f0',
+    borderColor: COLORS.secondary,
   },
-  locationItemMain: { fontSize: 14, fontWeight: '600', color: '#222' },
-  locationItemSub: { fontSize: 12, color: '#888', marginTop: 1 },
+  locationItemMain: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  locationItemSub: { fontSize: 12, color: COLORS.textSecondary, marginTop: 1 },
 });
