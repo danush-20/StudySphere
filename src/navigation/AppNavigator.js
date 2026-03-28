@@ -40,35 +40,68 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {/* Not logged in */}
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right', // default for all screens
+        }}
+      >
         {!user && (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen
+              name="Register"
+              component={RegisterScreen}
+              options={{ animation: 'slide_from_bottom' }}
+            />
           </>
         )}
 
-        {/* Logged in but email not verified */}
         {needsVerification && (
-          <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+          <Stack.Screen
+            name="VerifyEmail"
+            component={VerifyEmailScreen}
+            options={{ animation: 'fade' }}
+          />
         )}
 
-        {/* Logged in, verified, but no profile yet (Google users) */}
         {user && !needsVerification && !profileExists && (
-          <Stack.Screen name="GoogleSignIn" component={GoogleSignInScreen} />
+          <Stack.Screen
+            name="GoogleSignIn"
+            component={GoogleSignInScreen}
+            options={{ animation: 'fade' }}
+          />
         )}
 
-        {/* Fully set up */}
         {user && !needsVerification && profileExists && (
           <>
-            <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen
+              name="Home"
+              component={Home}
+              options={{ animation: 'fade' }}
+            />
+            <Stack.Screen
+              name="StudyGroup"
+              component={StudyGroup}
+              options={{ animation: 'slide_from_bottom' }}
+            />
             <Stack.Screen name="Feedback" component={FeedbackScreen} />
             <Stack.Screen name="ReportIssue" component={ReportIssueScreen} />
-            <Stack.Screen name="StudyGroup" component={StudyGroup} />
-            <Stack.Screen name="Profile" component={ProfileScreen} />
-            <Stack.Screen name="Media" component={MediaScreen} />
-            <Stack.Screen name="Chat" component={ChatScreen} />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{ animation: 'slide_from_bottom' }}
+            />
+            <Stack.Screen
+              name="Media"
+              component={MediaScreen}
+              options={{ animation: 'slide_from_bottom' }}
+            />
+            <Stack.Screen
+              name="Chat"
+              component={ChatScreen}
+              options={{ animation: 'slide_from_bottom' }}
+            />
           </>
         )}
       </Stack.Navigator>
