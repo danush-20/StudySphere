@@ -1,4 +1,11 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -11,186 +18,190 @@ import {
   ToastAndroid,
   Platform,
   Alert,
-  Clipboard
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { Ionicons } from "@expo/vector-icons";
+  ScrollView,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Circle } from 'react-native-svg';
+import * as Clipboard from 'expo-clipboard';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   doc,
   onSnapshot,
   updateDoc,
   deleteField,
   getDoc,
-  serverTimestamp
-} from "firebase/firestore";
-import { db, auth } from "../services/firebase";
-import { AuthContext } from "../context/AuthContext";
+  serverTimestamp,
+} from 'firebase/firestore';
+import { db, auth } from '../services/firebase';
+import { AuthContext } from '../context/AuthContext';
 import { ref, onValue, off } from 'firebase/database';
 import { rtdb } from '../services/firebase';
 
-const AVATAR_IMAGES = {
-  "1":  require("../../assets/Avatar-1.png"),
-  "2":  require("../../assets/Avatar-2.png"),
-  "3":  require("../../assets/Avatar-3.png"),
-  "4":  require("../../assets/Avatar-4.png"),
-  "5":  require("../../assets/Avatar-5.png"),
-  "6":  require("../../assets/Avatar-6.png"),
-  "7":  require("../../assets/Avatar-7.png"),
-  "8":  require("../../assets/Avatar-8.png"),
-  "9":  require("../../assets/Avatar-9.png"),
-  "10": require("../../assets/Avatar-10.png"),
-  "11": require("../../assets/Avatar-11.png"),
-  "12": require("../../assets/Avatar-12.png"),
+// ── Design System Tokens ─────────────────────────────────────────────────────
+const COLORS = {
+  primary: '#102A43',
+  secondary: '#D9E2EC',
+  accent: '#334E68',
+  background: '#F0F4F8',
+  surface: '#FFFFFF',
+  text: '#102A43',
+  textSecondary: '#486581',
+  border: '#BCCCDC',
+  white: '#FFFFFF',
+  success: '#3EBD93',
+  error: '#E53935',
+  warning: '#F0A500',
 };
 
-
+const AVATAR_IMAGES = {
+  1: require('../../assets/Avatar-1.png'),
+  2: require('../../assets/Avatar-2.png'),
+  3: require('../../assets/Avatar-3.png'),
+  4: require('../../assets/Avatar-4.png'),
+  5: require('../../assets/Avatar-5.png'),
+  6: require('../../assets/Avatar-6.png'),
+  7: require('../../assets/Avatar-7.png'),
+  8: require('../../assets/Avatar-8.png'),
+  9: require('../../assets/Avatar-9.png'),
+  10: require('../../assets/Avatar-10.png'),
+  11: require('../../assets/Avatar-11.png'),
+  12: require('../../assets/Avatar-12.png'),
+};
 
 export default function StudyGroupScreen({ route, navigation }) {
-
   const { sessionId } = route.params;
   const { user, profile } = useContext(AuthContext);
   const [unreadCount, setUnreadCount] = useState(0);
   const [lastReadTime, setLastReadTime] = useState(Date.now());
 
-  const [groupName, setGroupName] = useState("");
-  const [pin, setPin] = useState("");
+  const [groupName, setGroupName] = useState('');
+  const [pin, setPin] = useState('');
   const [members, setMembers] = useState([]);
-  const [hostUid, setHostUid] = useState("");
-  const [menuMember, setMenuMember] = useState(null); // member whose 3-dot menu is open
+  const [hostUid, setHostUid] = useState('');
+  const [menuMember, setMenuMember] = useState(null);
 
   // Pomodoro state
-  const [studyTime, setStudyTime] = useState("25");
-  const [breakTime, setBreakTime] = useState("5");
+  const [studyTime, setStudyTime] = useState('25');
+  const [breakTime, setBreakTime] = useState('5');
   const [timer, setTimer] = useState(25 * 60);
-  const [mode, setMode] = useState("study"); // "study" | "break"
+  const [mode, setMode] = useState('study');
   const [running, setRunning] = useState(false);
-  const [stopped, setStopped] = useState(false); // true after Stop pressed
+  const [stopped, setStopped] = useState(false);
 
   const [settingsVisible, setSettingsVisible] = useState(false);
-  const [tempStudy, setTempStudy] = useState("25");
-  const [tempBreak, setTempBreak] = useState("5");
+  const [tempStudy, setTempStudy] = useState('25');
+  const [tempBreak, setTempBreak] = useState('5');
 
-  // Stats (synced via Firestore)
+  // Stats
   const [focusSecs, setFocusSecs] = useState(0);
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
   const focusRef = useRef(null);
-  const focusSecsRef = useRef(0); // ref so interval can read latest value
+  const focusSecsRef = useRef(0);
 
   // Tasks
   const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState("");
+  const [newTask, setNewTask] = useState('');
   const [addingTask, setAddingTask] = useState(false);
 
   const sheetRef = useRef(null);
-  const snapPoints = ["12%", "45%", "80%"];
+  const snapPoints = useMemo(() => ['12%', '45%', '80%'], []);
   const intervalRef = useRef(null);
 
   // ─── Firestore listener ───────────────────────────────────────────────────
 
   useEffect(() => {
+    const unsub = onSnapshot(
+      doc(db, 'studySessions', sessionId),
+      async snap => {
+        if (!snap.exists()) return;
+        const data = snap.data();
 
-    const unsub = onSnapshot(doc(db, "studySessions", sessionId), async (snap) => {
+        setGroupName(data.groupName || '');
+        setPin(data.pin || '');
+        setHostUid(data.host || '');
 
-      if (!snap.exists()) return;
-
-      const data = snap.data();
-
-      setGroupName(data.groupName || "");
-      setPin(data.pin || "");
-      setHostUid(data.host || "");
-
-
-      if (data.members) {
-        // Only show active members (value === true), not those who left (value === false)
-        const uids = Object.entries(data.members)
-          .filter(([, v]) => v === true)
-          .map(([uid]) => uid);
-        const memberList = await Promise.all(
-          uids.map(async (uid) => {
-            try {
-              const userDoc = await getDoc(doc(db, "users", uid));
-              const userData = userDoc.exists() ? userDoc.data() : {};
-              const name = userData.username || userData.email?.split("@")[0] || uid;
-              const avatar = userData.avatar || "1";
-              //console.log("member avatar:", name);
-              return { id: uid, name, avatar };
-            } catch {
-              return { id: uid, name: uid };
-            }
-          })
-        );
-        setMembers(memberList);
-      } else {
-        setMembers([]);
-      }
-
-      // Sync stats
-      if (data.stats) {
-        setFocusSecs(data.stats.focusSecs || 0);
-        setSessionsCompleted(data.stats.sessionsCompleted || 0);
-      }
-
-      // Sync tasks
-      if (data.tasks) {
-        setTasks(data.tasks);
-      }
-
-      // Sync settings so all members use the same durations
-      if (data.pomodoroSettings) {
-        setStudyTime(String(data.pomodoroSettings.studyTime));
-        setBreakTime(String(data.pomodoroSettings.breakTime));
-      }
-
-      // Sync timer state — calculate elapsed time on join/rejoin so timer is live
-      if (data.timerState) {
-        const { running: r, timer: t, mode: m, startedAt } = data.timerState;
-        setMode(m);
-        setStopped(!r && t > 0);
-
-        if (r && startedAt) {
-          // Calculate seconds elapsed since host started the timer
-          const now = Date.now();
-          const startedMs = startedAt.toMillis ? startedAt.toMillis() : startedAt;
-          const elapsed = Math.floor((now - startedMs) / 1000);
-          const current = Math.max(t - elapsed, 0);
-          setTimer(current);
-          setRunning(current > 0);
-          if (current <= 0) {
-            setStopped(false);
-            setMode(m === "study" ? "break" : "study");
-          }
+        if (data.members) {
+          const uids = Object.entries(data.members)
+            .filter(([, v]) => v === true)
+            .map(([uid]) => uid);
+          const memberList = await Promise.all(
+            uids.map(async uid => {
+              try {
+                const userDoc = await getDoc(doc(db, 'users', uid));
+                const userData = userDoc.exists() ? userDoc.data() : {};
+                const name =
+                  userData.username || userData.email?.split('@')[0] || uid;
+                const avatar = userData.avatar || '1';
+                return { id: uid, name, avatar };
+              } catch {
+                return { id: uid, name: uid };
+              }
+            }),
+          );
+          setMembers(memberList);
         } else {
-          setTimer(t);
-          setRunning(r);
+          setMembers([]);
         }
-      }
 
-    });
+        if (data.stats) {
+          setFocusSecs(data.stats.focusSecs || 0);
+          setSessionsCompleted(data.stats.sessionsCompleted || 0);
+        }
 
+        if (data.tasks) setTasks(data.tasks);
+
+        if (data.pomodoroSettings) {
+          setStudyTime(String(data.pomodoroSettings.studyTime));
+          setBreakTime(String(data.pomodoroSettings.breakTime));
+        }
+
+        if (data.timerState) {
+          const { running: r, timer: t, mode: m, startedAt } = data.timerState;
+          setMode(m);
+          setStopped(!r && t > 0);
+          if (r && startedAt) {
+            const now = Date.now();
+            const startedMs = startedAt.toMillis
+              ? startedAt.toMillis()
+              : startedAt;
+            const elapsed = Math.floor((now - startedMs) / 1000);
+            const current = Math.max(t - elapsed, 0);
+            setTimer(current);
+            setRunning(current > 0);
+            if (current <= 0) {
+              setStopped(false);
+              setMode(m === 'study' ? 'break' : 'study');
+            }
+          } else {
+            setTimer(t);
+            setRunning(r);
+          }
+        }
+      },
+    );
     return () => unsub();
-
   }, [sessionId]);
 
   // ─── Local timer tick ─────────────────────────────────────────────────────
 
   useEffect(() => {
-
     if (running) {
       intervalRef.current = setInterval(() => {
-        setTimer((prev) => {
+        setTimer(prev => {
           if (prev <= 1) {
             clearInterval(intervalRef.current);
             setRunning(false);
             setStopped(false);
-            if (mode === "study") {
+            if (mode === 'study') {
               const newCount = sessionsCompleted + 1;
               setSessionsCompleted(newCount);
-              updateDoc(doc(db, "studySessions", sessionId), {
-                "stats.sessionsCompleted": newCount
-              }).catch((e) => console.log("Sessions sync error:", e.message));
+              updateDoc(doc(db, 'studySessions', sessionId), {
+                'stats.sessionsCompleted': newCount,
+              }).catch(e => console.log('Sessions sync error:', e.message));
             }
-            setMode((m) => (m === "study" ? "break" : "study"));
+            setMode(m => (m === 'study' ? 'break' : 'study'));
             return 0;
           }
           return prev - 1;
@@ -199,23 +210,20 @@ export default function StudyGroupScreen({ route, navigation }) {
     } else {
       clearInterval(intervalRef.current);
     }
-
     return () => clearInterval(intervalRef.current);
-
   }, [running]);
 
-  // ─── Focus time counter — ticks locally, syncs to Firestore every 5s ──────
+  // ─── Focus time counter ───────────────────────────────────────────────────
 
   useEffect(() => {
-    if (running && mode === "study") {
+    if (running && mode === 'study') {
       focusRef.current = setInterval(() => {
         focusSecsRef.current += 1;
         setFocusSecs(focusSecsRef.current);
-        // Write to Firestore every 5 seconds to avoid hammering
         if (focusSecsRef.current % 5 === 0) {
-          updateDoc(doc(db, "studySessions", sessionId), {
-            "stats.focusSecs": focusSecsRef.current
-          }).catch((e) => console.log("Stats sync error:", e.message));
+          updateDoc(doc(db, 'studySessions', sessionId), {
+            'stats.focusSecs': focusSecsRef.current,
+          }).catch(e => console.log('Stats sync error:', e.message));
         }
       }, 1000);
     } else {
@@ -226,14 +234,13 @@ export default function StudyGroupScreen({ route, navigation }) {
 
   const isHost = auth.currentUser?.uid === hostUid;
 
-  // Sort members: host first, then others
   const sortedMembers = [...members].sort((a, b) => {
     if (a.id === hostUid) return -1;
     if (b.id === hostUid) return 1;
     return 0;
   });
 
-  // ─── Realtime Database listener for unread chat messages ─────────────────
+  // ─── RTDB unread chat listener ────────────────────────────────────────────
 
   useEffect(() => {
     const messagesRef = ref(rtdb, `chats/${sessionId}/messages`);
@@ -250,53 +257,61 @@ export default function StudyGroupScreen({ route, navigation }) {
     return () => off(messagesRef);
   }, [lastReadTime]);
 
-  // ─── Firestore timer sync (only host should write, others read) ───────────
+  // ─── Timer sync ───────────────────────────────────────────────────────────
 
-  const syncTimerToFirestore = async (updates) => {
+  const syncTimerToFirestore = async updates => {
     try {
-      await updateDoc(doc(db, "studySessions", sessionId), {
-        timerState: updates
+      await updateDoc(doc(db, 'studySessions', sessionId), {
+        timerState: updates,
       });
     } catch (e) {
-      console.log("Timer sync error:", e.message);
+      console.log('Timer sync error:', e.message);
     }
   };
 
   // ─── Button handlers ──────────────────────────────────────────────────────
 
-  // Start button (also serves as "Break" button when running)
   const handleStartOrBreak = async () => {
     if (running) {
-      // Switch to break
       const breakSecs = parseInt(breakTime) * 60;
-      setMode("break");
+      setMode('break');
       setTimer(breakSecs);
       setRunning(true);
       setStopped(false);
-      await syncTimerToFirestore({ running: true, timer: breakSecs, mode: "break", startedAt: serverTimestamp() });
+      await syncTimerToFirestore({
+        running: true,
+        timer: breakSecs,
+        mode: 'break',
+        startedAt: serverTimestamp(),
+      });
     } else {
-      // Start study
       const studySecs = parseInt(studyTime) * 60;
       if (!stopped) setTimer(studySecs);
-      setMode("study");
+      setMode('study');
       setRunning(true);
       setStopped(false);
-      await syncTimerToFirestore({ running: true, timer: stopped ? timer : studySecs, mode: "study", startedAt: serverTimestamp() });
+      await syncTimerToFirestore({
+        running: true,
+        timer: stopped ? timer : studySecs,
+        mode: 'study',
+        startedAt: serverTimestamp(),
+      });
     }
   };
 
-  // Stop button (also serves as "Reset" after stopped)
   const handleStopOrReset = async () => {
     if (stopped) {
-      // Reset
       const studySecs = parseInt(studyTime) * 60;
       setTimer(studySecs);
-      setMode("study");
+      setMode('study');
       setStopped(false);
       setRunning(false);
-      await syncTimerToFirestore({ running: false, timer: studySecs, mode: "study" });
+      await syncTimerToFirestore({
+        running: false,
+        timer: studySecs,
+        mode: 'study',
+      });
     } else {
-      // Stop
       setRunning(false);
       setStopped(true);
       await syncTimerToFirestore({ running: false, timer, mode });
@@ -314,38 +329,45 @@ export default function StudyGroupScreen({ route, navigation }) {
     setTimer(newTimer);
     setRunning(false);
     setStopped(false);
-    setMode("study");
+    setMode('study');
     setSettingsVisible(false);
-    await syncTimerToFirestore({ running: false, timer: newTimer, mode: "study" });
+    await syncTimerToFirestore({
+      running: false,
+      timer: newTimer,
+      mode: 'study',
+    });
     try {
-      await updateDoc(doc(db, "studySessions", sessionId), {
-        pomodoroSettings: { studyTime: s, breakTime: b }
+      await updateDoc(doc(db, 'studySessions', sessionId), {
+        pomodoroSettings: { studyTime: s, breakTime: b },
       });
     } catch (e) {
-      console.log("Settings sync error:", e.message);
+      console.log('Settings sync error:', e.message);
     }
   };
 
-  // ─── Task handlers ───────────────────────────────────────────────────────
+  // ─── Task handlers ────────────────────────────────────────────────────────
 
   const handleAddTask = async () => {
     if (!newTask.trim()) return;
-    const updated = [...tasks, { id: Date.now().toString(), text: newTask.trim(), done: false }];
-    setNewTask("");
+    const updated = [
+      ...tasks,
+      { id: Date.now().toString(), text: newTask.trim(), done: false },
+    ];
+    setNewTask('');
     setAddingTask(false);
     try {
-      await updateDoc(doc(db, "studySessions", sessionId), { tasks: updated });
+      await updateDoc(doc(db, 'studySessions', sessionId), { tasks: updated });
     } catch (e) {
-      console.log("Task add error:", e.message);
+      console.log('Task add error:', e.message);
     }
   };
 
-  const handleToggleTask = async (id) => {
-    const updated = tasks.map((t) => t.id === id ? { ...t, done: !t.done } : t);
+  const handleToggleTask = async id => {
+    const updated = tasks.map(t => (t.id === id ? { ...t, done: !t.done } : t));
     try {
-      await updateDoc(doc(db, "studySessions", sessionId), { tasks: updated });
+      await updateDoc(doc(db, 'studySessions', sessionId), { tasks: updated });
     } catch (e) {
-      console.log("Task toggle error:", e.message);
+      console.log('Task toggle error:', e.message);
     }
   };
 
@@ -358,31 +380,28 @@ export default function StudyGroupScreen({ route, navigation }) {
     return `${s}s`;
   };
 
-
   // ─── Leave session ────────────────────────────────────────────────────────
 
   const handleLeave = async () => {
     try {
       const uid = auth.currentUser.uid;
-      // Keep in members map so they stay in joined sessions list
-      // Mark as inactive so they don't count as currently in the session
-      await updateDoc(doc(db, "studySessions", sessionId), {
-        [`members.${uid}`]: false
+      await updateDoc(doc(db, 'studySessions', sessionId), {
+        [`members.${uid}`]: false,
       });
-      navigation.navigate("Feedback", { groupName, sessionId });
+      navigation.navigate('Feedback', { groupName, sessionId });
     } catch (e) {
-      console.log("Leave error:", e.message);
+      console.log('Leave error:', e.message);
     }
   };
 
   // ─── Copy PIN ─────────────────────────────────────────────────────────────
 
   const handleCopyPin = () => {
-    Clipboard.setString(pin);
-    if (Platform.OS === "android") {
-      ToastAndroid.show("PIN copied!", ToastAndroid.SHORT);
+    Clipboard.setStringAsync(pin); // note: setStringAsync not setString
+    if (Platform.OS === 'android') {
+      ToastAndroid.show('PIN copied!', ToastAndroid.SHORT);
     } else {
-      Alert.alert("Copied", `PIN ${pin} copied to clipboard`);
+      Alert.alert('Copied', `PIN ${pin} copied to clipboard`);
     }
   };
 
@@ -391,13 +410,11 @@ export default function StudyGroupScreen({ route, navigation }) {
   const formatTime = () => {
     const m = Math.floor(timer / 60);
     const s = timer % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // ─── Button labels ────────────────────────────────────────────────────────
-
-  const startLabel = running ? "Break" : "Start";
-  const stopLabel = stopped ? "Reset" : "Stop";
+  const startLabel = running ? 'Break' : 'Start';
+  const stopLabel = stopped ? 'Reset' : 'Stop';
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -405,112 +422,206 @@ export default function StudyGroupScreen({ route, navigation }) {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.logo}>StudySphere</Text>
-
-        <View style={styles.groupRow}>
+        <View>
+          <Text style={styles.logoText}>StudySphere</Text>
           <Text style={styles.groupName}>{groupName}</Text>
-          <TouchableOpacity style={styles.pinBadge} onPress={handleCopyPin}>
-            <Text style={styles.pinText}>PIN {pin}</Text>
-            <Ionicons
-              name="copy-outline"
-              size={13}
-              color="#666"
-              style={{ marginLeft: 4 }}
-            />
-          </TouchableOpacity>
         </View>
+        <TouchableOpacity style={styles.pinBadge} onPress={handleCopyPin}>
+          <Text style={styles.pinText}>PIN {pin}</Text>
+          <Ionicons
+            name="copy-outline"
+            size={13}
+            color={COLORS.primary}
+            style={{ marginLeft: 4 }}
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Pomodoro Box */}
-      <View style={styles.pomodoroBox}>
-        <View style={styles.modeRow}>
-          <Text style={styles.modeLabel}>
-            {mode === 'study' ? '🎯 Study Session' : '☕ Break Time'}
-          </Text>
-          <TouchableOpacity
-            onPress={() => {
-              setTempStudy(studyTime);
-              setTempBreak(breakTime);
-              setSettingsVisible(true);
-            }}
-          >
-            <Ionicons name="settings-outline" size={20} color="#555" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.timerCircle}>
-          <Text style={styles.timerText}>{formatTime()}</Text>
-        </View>
-
-        <View style={styles.timerButtons}>
-          <TouchableOpacity
-            style={[
-              styles.timerBtn,
-              running ? styles.breakBtn : styles.startBtn,
-              !isHost && styles.btnDisabled,
-            ]}
-            onPress={isHost ? handleStartOrBreak : null}
-            disabled={!isHost}
-          >
-            <Text style={styles.timerBtnText}>{startLabel}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.timerBtn,
-              stopped ? styles.resetBtn : styles.stopBtn,
-              !isHost && styles.btnDisabled,
-            ]}
-            onPress={isHost ? handleStopOrReset : null}
-            disabled={!isHost || (!running && !stopped)}
-          >
-            <Text style={styles.timerBtnText}>{stopLabel}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Stats + Tasks */}
-      <View style={styles.midSection}>
-        {/* Session Stats */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Ionicons name="time-outline" size={18} color="#4CAF50" />
-            <Text style={styles.statValue}>{formatFocus()}</Text>
-            <Text style={styles.statLabel}>Focus Time</Text>
+      {/* Scrollable main content */}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Pomodoro Card */}
+        <Animated.View
+          entering={FadeInDown.duration(600)}
+          style={styles.pomodoroCard}
+        >
+          <View style={styles.cardHeader}>
+            <View style={styles.modeBadge}>
+              <View
+                style={[
+                  styles.modeDot,
+                  {
+                    backgroundColor:
+                      mode === 'study' ? COLORS.success : COLORS.warning,
+                  },
+                ]}
+              />
+              <Text style={styles.modeText}>
+                {mode === 'study' ? 'STUDY SESSION' : 'BREAK TIME'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setTempStudy(studyTime);
+                setTempBreak(breakTime);
+                setSettingsVisible(true);
+              }}
+            >
+              <Ionicons
+                name="settings-sharp"
+                size={22}
+                color={COLORS.textSecondary}
+              />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.statDivider} />
-
-          <View style={styles.statCard}>
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={18}
-              color="#2196F3"
-            />
-            <Text style={styles.statValue}>{sessionsCompleted}</Text>
-            <Text style={styles.statLabel}>Sessions Done</Text>
-          </View>
-
-          <View style={styles.statDivider} />
-
-          <View style={styles.statCard}>
-            <Ionicons name="people-outline" size={18} color="#FF9800" />
-            <Text style={styles.statValue}>{members.length}</Text>
-            <Text style={styles.statLabel}>Members</Text>
-          </View>
-        </View>
-
-        {/* Task Checklist */}
-        <View style={styles.taskSection}>
-          <View style={styles.taskHeader}>
-            <Text style={styles.taskTitle}>📋 Session Goals</Text>
-            {isHost && (
-              <TouchableOpacity onPress={() => setAddingTask(!addingTask)}>
-                <Ionicons
-                  name={addingTask ? 'close' : 'add-circle-outline'}
-                  size={22}
-                  color="#4CAF50"
+          {/* Timer Circle */}
+          <View style={styles.timerContainer}>
+            <View style={styles.timerWrapper}>
+              <Svg width={200} height={200} style={StyleSheet.absoluteFill}>
+                {/* Background track */}
+                <Circle
+                  cx={100}
+                  cy={100}
+                  r={88}
+                  stroke={COLORS.secondary}
+                  strokeWidth={8}
+                  fill="none"
                 />
+                {/* Progress arc */}
+                <Circle
+                  cx={100}
+                  cy={100}
+                  r={88}
+                  stroke={mode === 'study' ? COLORS.primary : COLORS.warning}
+                  strokeWidth={8}
+                  fill="none"
+                  strokeDasharray={2 * Math.PI * 88}
+                  strokeDashoffset={
+                    2 *
+                    Math.PI *
+                    88 *
+                    (1 -
+                      timer /
+                        (parseInt(mode === 'study' ? studyTime : breakTime) *
+                          60))
+                  }
+                  strokeLinecap="round"
+                  rotation="-90"
+                  origin="100, 100"
+                />
+              </Svg>
+              <Text style={styles.timerMain}>{formatTime()}</Text>
+              <Text style={styles.timerSub}>TIME REMAINING</Text>
+            </View>
+          </View>
+
+          {/* Timer Buttons */}
+          <View style={styles.timerActions}>
+            <TouchableOpacity
+              style={[
+                styles.actionBtn,
+                running ? styles.breakBtn : styles.startBtn,
+                !isHost && styles.btnDisabled,
+              ]}
+              onPress={isHost ? handleStartOrBreak : null}
+              disabled={!isHost}
+            >
+              <Text style={styles.actionBtnText}>{startLabel}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.actionBtn,
+                stopped ? styles.resetBtn : styles.stopBtn,
+                !isHost && styles.btnDisabled,
+              ]}
+              onPress={isHost ? handleStopOrReset : null}
+              disabled={!isHost || (!running && !stopped)}
+            >
+              <Text style={[styles.actionBtnText, styles.stopBtnText]}>
+                {stopLabel}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {!isHost && (
+            <Text style={styles.hostOnlyNote}>
+              Only the host can control the timer
+            </Text>
+          )}
+        </Animated.View>
+
+        {/* Stats Row */}
+        <Animated.View
+          entering={FadeInDown.delay(200).duration(600)}
+          style={styles.statsRow}
+        >
+          <View style={styles.statBox}>
+            <View style={styles.statIconCircle}>
+              <Ionicons name="time-outline" size={22} color={COLORS.primary} />
+            </View>
+            <Text style={styles.statLabel}>FOCUS TIME</Text>
+            <Text style={styles.statValue}>{formatFocus()}</Text>
+          </View>
+
+          <View style={styles.statDivider} />
+
+          <View style={styles.statBox}>
+            <View style={styles.statIconCircle}>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={22}
+                color={COLORS.primary}
+              />
+            </View>
+            <Text style={styles.statLabel}>SESSIONS</Text>
+            <Text style={styles.statValue}>
+              {sessionsCompleted.toString().padStart(2, '0')}
+            </Text>
+          </View>
+
+          <View style={styles.statDivider} />
+
+          <View style={styles.statBox}>
+            <View style={styles.statIconCircle}>
+              <Ionicons
+                name="people-outline"
+                size={22}
+                color={COLORS.primary}
+              />
+            </View>
+            <Text style={styles.statLabel}>MEMBERS</Text>
+            <Text style={styles.statValue}>
+              {members.length.toString().padStart(2, '0')}
+            </Text>
+          </View>
+        </Animated.View>
+
+        {/* Session Goals / Tasks */}
+        <Animated.View
+          entering={FadeInDown.delay(400).duration(600)}
+          style={styles.goalsCard}
+        >
+          <View style={styles.goalsHeader}>
+            <Text style={styles.goalsTitle}>Session Goals</Text>
+            {isHost && (
+              <TouchableOpacity
+                style={styles.addTaskBtn}
+                onPress={() => setAddingTask(!addingTask)}
+              >
+                <Ionicons
+                  name={addingTask ? 'close' : 'add'}
+                  size={20}
+                  color={COLORS.primary}
+                />
+                {!addingTask && (
+                  <Text style={styles.addTaskText}>Add Task</Text>
+                )}
               </TouchableOpacity>
             )}
           </View>
@@ -520,6 +631,7 @@ export default function StudyGroupScreen({ route, navigation }) {
               <TextInput
                 style={styles.taskInput}
                 placeholder="Add a goal..."
+                placeholderTextColor={COLORS.textSecondary}
                 value={newTask}
                 onChangeText={setNewTask}
                 onSubmitEditing={handleAddTask}
@@ -549,8 +661,8 @@ export default function StudyGroupScreen({ route, navigation }) {
               >
                 <Ionicons
                   name={task.done ? 'checkmark-circle' : 'ellipse-outline'}
-                  size={20}
-                  color={task.done ? '#4CAF50' : '#bbb'}
+                  size={22}
+                  color={task.done ? COLORS.success : COLORS.border}
                 />
                 <Text style={[styles.taskText, task.done && styles.taskDone]}>
                   {task.text}
@@ -558,56 +670,64 @@ export default function StudyGroupScreen({ route, navigation }) {
               </TouchableOpacity>
             ))
           )}
-        </View>
-      </View>
+        </Animated.View>
+
+        {/* Bottom padding so sheet doesn't cover content */}
+        <View style={{ height: 200 }} />
+      </ScrollView>
 
       {/* Bottom Sheet */}
       <BottomSheet
         ref={sheetRef}
         index={0}
         snapPoints={snapPoints}
-        handleIndicatorStyle={styles.dragHandle}
+        handleIndicatorStyle={styles.sheetHandle}
+        backgroundStyle={styles.sheetBackground}
       >
         <BottomSheetView style={styles.sheetContent}>
-          {/* Mic / Media / Chat buttons — always visible, travel with sheet */}
-          <View style={styles.iconRow}>
-            {/* <TouchableOpacity style={styles.iconBtn}>
-              <Ionicons name="mic-outline" size={22} color="#333" />
-              <Text style={styles.iconLabel}>Mic</Text>
-            </TouchableOpacity> */}
-
+          {/* Action Buttons Row */}
+          <View style={styles.actionRow}>
             <TouchableOpacity
-              style={styles.iconBtn}
-              onPress={() =>
-                navigation.navigate('Media', { sessionId, groupName })
-              }
-            >
-              <Ionicons name="videocam-outline" size={22} color="#333" />
-              <Text style={styles.iconLabel}>Media</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.iconBtn}
+              style={[styles.wideBtn, styles.chatBtn]}
               onPress={() => {
                 setLastReadTime(Date.now());
                 setUnreadCount(0);
                 navigation.navigate('Chat', { sessionId, groupName });
               }}
             >
-              <Ionicons name="chatbubble-outline" size={22} color="#333" />
-              <Text style={styles.iconLabel}>Chat</Text>
+              <Ionicons name="chatbubble" size={22} color={COLORS.white} />
+              <Text style={styles.wideBtnText}>Chat</Text>
               {unreadCount > 0 && (
-                <View style={styles.badgeDot}>
-                  <Text style={styles.badgeDotText}>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </Text>
                 </View>
               )}
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.wideBtn, styles.mediaBtn]}
+              onPress={() =>
+                navigation.navigate('Media', { sessionId, groupName })
+              }
+            >
+              <Ionicons
+                name="videocam-outline"
+                size={22}
+                color={COLORS.primary}
+              />
+              <Text style={styles.mediaBtnText}>Media</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Members list */}
-          <Text style={styles.membersTitle}>Members ({members.length})</Text>
+          {/* Members */}
+          <View style={styles.membersHeader}>
+            <Text style={styles.membersCount}>MEMBERS ({members.length})</Text>
+            <View style={styles.liveBadge}>
+              <Text style={styles.liveText}>LIVE</Text>
+            </View>
+          </View>
 
           {sortedMembers.length === 0 ? (
             <Text style={styles.noMember}>No active members</Text>
@@ -623,13 +743,10 @@ export default function StudyGroupScreen({ route, navigation }) {
                   <View style={styles.memberRow}>
                     <Image
                       source={AVATAR_IMAGES[item.avatar] || AVATAR_IMAGES['1']}
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 18,
-                        borderWidth: 1.5,
-                        borderColor: isItemHost ? '#c8e6c9' : '#eee',
-                      }}
+                      style={[
+                        styles.memberAvatar,
+                        isItemHost && styles.memberAvatarHost,
+                      ]}
                       resizeMode="contain"
                     />
                     <View style={styles.memberInfo}>
@@ -643,7 +760,6 @@ export default function StudyGroupScreen({ route, navigation }) {
                         </View>
                       )}
                     </View>
-                    {/* 3-dot menu button — show for everyone except yourself */}
                     {!isMe && (
                       <TouchableOpacity
                         style={styles.dotMenu}
@@ -652,7 +768,7 @@ export default function StudyGroupScreen({ route, navigation }) {
                         <Ionicons
                           name="ellipsis-vertical"
                           size={18}
-                          color="#999"
+                          color={COLORS.border}
                         />
                       </TouchableOpacity>
                     )}
@@ -662,9 +778,9 @@ export default function StudyGroupScreen({ route, navigation }) {
             />
           )}
 
-          {/* Leave button */}
+          {/* Leave Button */}
           <TouchableOpacity style={styles.leaveBtn} onPress={handleLeave}>
-            <Ionicons name="exit-outline" size={18} color="#fff" />
+            <Ionicons name="exit-outline" size={20} color={COLORS.error} />
             <Text style={styles.leaveBtnText}>Leave Session</Text>
           </TouchableOpacity>
         </BottomSheetView>
@@ -683,7 +799,6 @@ export default function StudyGroupScreen({ route, navigation }) {
               {menuMember?.id === hostUid ? '  👑' : ''}
             </Text>
 
-            {/* Host-only actions */}
             {isHost && (
               <TouchableOpacity
                 style={styles.actionItem}
@@ -695,12 +810,15 @@ export default function StudyGroupScreen({ route, navigation }) {
                   );
                 }}
               >
-                <Ionicons name="mic-off-outline" size={20} color="#555" />
+                <Ionicons
+                  name="mic-off-outline"
+                  size={20}
+                  color={COLORS.textSecondary}
+                />
                 <Text style={styles.actionText}>Mute</Text>
               </TouchableOpacity>
             )}
 
-            {/* Available to all */}
             <TouchableOpacity
               style={styles.actionItem}
               onPress={() => {
@@ -708,7 +826,11 @@ export default function StudyGroupScreen({ route, navigation }) {
                 navigation.navigate('ViewProfile', { uid: menuMember?.id });
               }}
             >
-              <Ionicons name="person-outline" size={20} color="#555" />
+              <Ionicons
+                name="person-outline"
+                size={20}
+                color={COLORS.textSecondary}
+              />
               <Text style={styles.actionText}>View Profile</Text>
             </TouchableOpacity>
 
@@ -722,8 +844,8 @@ export default function StudyGroupScreen({ route, navigation }) {
                 });
               }}
             >
-              <Ionicons name="flag-outline" size={20} color="#FF9800" />
-              <Text style={[styles.actionText, { color: '#FF9800' }]}>
+              <Ionicons name="flag-outline" size={20} color={COLORS.warning} />
+              <Text style={[styles.actionText, { color: COLORS.warning }]}>
                 Report
               </Text>
             </TouchableOpacity>
@@ -740,8 +862,16 @@ export default function StudyGroupScreen({ route, navigation }) {
 
       {/* Settings Modal */}
       <Modal visible={settingsVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setSettingsVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => {}}
+            style={styles.modalBox}
+          >
             <Text style={styles.modalTitle}>⏱ Pomodoro Settings</Text>
 
             <Text style={styles.modalLabel}>Study Duration (minutes)</Text>
@@ -750,6 +880,7 @@ export default function StudyGroupScreen({ route, navigation }) {
               value={tempStudy}
               onChangeText={setTempStudy}
               keyboardType="numeric"
+              placeholderTextColor={COLORS.textSecondary}
             />
 
             <Text style={styles.modalLabel}>Break Duration (minutes)</Text>
@@ -758,6 +889,7 @@ export default function StudyGroupScreen({ route, navigation }) {
               value={tempBreak}
               onChangeText={setTempBreak}
               keyboardType="numeric"
+              placeholderTextColor={COLORS.textSecondary}
             />
 
             <View style={styles.modalButtons}>
@@ -774,519 +906,479 @@ export default function StudyGroupScreen({ route, navigation }) {
                 <Text style={styles.saveText}>Save</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
-
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.background },
 
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5"
-  },
-
-  // ── Header ──────────────────────────────────────────────
-
+  // ── Header ────────────────────────────────────────────────────────────────
   header: {
-    backgroundColor: "#fff",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: "#eee"
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: COLORS.background,
   },
-
-  logo: {
+  logoText: {
     fontSize: 20,
-    fontWeight: "bold",
-    color: "#2e7d32"
+    fontWeight: '800',
+    color: COLORS.primary,
+    letterSpacing: -0.5,
   },
-
-  groupRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 4
-  },
-
   groupName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#333"
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
-
   pinBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D1E9FF',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
-
   pinText: {
     fontSize: 13,
-    color: "#555",
-    fontWeight: "500"
+    fontWeight: '700',
+    color: COLORS.primary,
+    letterSpacing: 1,
   },
 
-  // ── Pomodoro Box ─────────────────────────────────────────
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 24 },
 
-  pomodoroBox: {
-    margin: 16,
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    alignItems: "center",
-    shadowColor: "#000",
+  // ── Pomodoro Card ─────────────────────────────────────────────────────────
+  pomodoroCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 32,
+    padding: 28,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3
+    shadowRadius: 32,
+    elevation: 8,
+    marginBottom: 16,
+    marginTop: 8,
   },
-
-  modeRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 16
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
   },
-
-  modeLabel: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#333"
+  modeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
-
+  modeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  modeText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  timerContainer: {
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+  timerWrapper: {
+    width: 200,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   timerCircle: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    borderWidth: 4,
-    borderColor: "#4CAF50",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 8,
+    borderColor: COLORS.secondary,
+    borderTopColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-
-  timerText: {
-    fontSize: 44,
-    fontWeight: "bold",
-    color: "#222",
-    letterSpacing: 2
+  timerMain: {
+    fontSize: 52,
+    fontWeight: '800',
+    color: COLORS.primary,
+    letterSpacing: -2,
   },
-
-  timerButtons: {
-    flexDirection: "row",
-    gap: 14
+  timerSub: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    letterSpacing: 1.5,
+    marginTop: 2,
   },
-
-  timerBtn: {
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 10,
-    minWidth: 100,
-    alignItems: "center"
+  timerActions: { flexDirection: 'row', gap: 12 },
+  actionBtn: {
+    flex: 1,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-
   startBtn: {
-    backgroundColor: "#4CAF50"
+    backgroundColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 6,
   },
-
   breakBtn: {
-    backgroundColor: "#2196F3"
+    backgroundColor: '#1565C0',
+    shadowColor: '#1565C0',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 6,
   },
-
-  stopBtn: {
-    backgroundColor: "#f44336"
-  },
-
+  stopBtn: { backgroundColor: COLORS.secondary },
   resetBtn: {
-    backgroundColor: "#FF9800"
+    backgroundColor: COLORS.warning,
+    shadowColor: COLORS.warning,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 4,
   },
-
-  timerBtnText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 15
-  },
-
-  // ── Bottom Sheet ─────────────────────────────────────────
-
-  dragHandle: {
-    backgroundColor: "#ccc",
-    width: 40
-  },
-
-  sheetContent: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 8
-  },
-
-  iconRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: "#eee",
-    marginBottom: 12
-  },
-
-  iconBtn: {
-    alignItems: "center",
-    gap: 4,
-    position: "relative"
-  },
-
-  iconLabel: {
+  actionBtnText: { color: COLORS.white, fontSize: 16, fontWeight: '700' },
+  stopBtnText: { color: COLORS.accent },
+  btnDisabled: { opacity: 0.4 },
+  hostOnlyNote: {
     fontSize: 11,
-    color: "#555"
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: 14,
   },
 
-  membersTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#888",
-    marginBottom: 8,
-    textTransform: "uppercase",
-    letterSpacing: 0.5
-  },
-
-  memberRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderColor: "#eee",
-    gap: 10
-  },
-
-  memberName: {
-    fontSize: 15,
-    color: "#333"
-  },
-
-  noMember: {
-    textAlign: "center",
-    color: "#aaa",
-    marginVertical: 20
-  },
-
-  leaveBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#e53935",
-    borderRadius: 10,
-    padding: 14,
-    marginTop: 16,
-    gap: 8
-  },
-
-  leaveBtnText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 15
-  },
-
-  // ── Mid Section ──────────────────────────────────────────
-
-  midSection: {
-    marginHorizontal: 16,
-    marginBottom: 10,
-    gap: 10
-  },
-
+  // ── Stats ─────────────────────────────────────────────────────────────────
   statsRow: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    alignItems: "center",
-    justifyContent: "space-around",
-    shadowColor: "#000",
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2
+    shadowRadius: 12,
+    elevation: 2,
   },
-
-  statCard: {
-    flex: 1,
-    alignItems: "center",
-    gap: 3
+  statBox: { flex: 1, alignItems: 'center', gap: 6 },
+  statIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#D1E9FF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-
-  statValue: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#222",
-    marginTop: 2
-  },
-
   statLabel: {
-    fontSize: 11,
-    color: "#999",
-    textTransform: "uppercase",
-    letterSpacing: 0.4
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+    letterSpacing: 1,
   },
+  statValue: { fontSize: 20, fontWeight: '800', color: COLORS.primary },
+  statDivider: { width: 1, height: 40, backgroundColor: COLORS.secondary },
 
-  statDivider: {
-    width: 1,
-    height: 36,
-    backgroundColor: "#eee"
-  },
-
-  taskSection: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 14,
-    shadowColor: "#000",
+  // ── Goals Card ────────────────────────────────────────────────────────────
+  goalsCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2
+    shadowRadius: 12,
+    elevation: 2,
   },
-
-  taskHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10
+  goalsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-
-  taskTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333"
-  },
-
-  taskInputRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 10
-  },
-
+  goalsTitle: { fontSize: 18, fontWeight: '800', color: COLORS.primary },
+  addTaskBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  addTaskText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
+  taskInputRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   taskInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    fontSize: 14
-  },
-
-  taskAddBtn: {
-    backgroundColor: "#4CAF50",
-    borderRadius: 8,
+    backgroundColor: COLORS.secondary,
+    borderRadius: 12,
     paddingHorizontal: 14,
-    justifyContent: "center"
-  },
-
-  taskAddBtnText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 13
-  },
-
-  taskRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    gap: 10,
-    borderBottomWidth: 0.5,
-    borderColor: "#f0f0f0"
-  },
-
-  taskText: {
-    fontSize: 14,
-    color: "#333",
-    flex: 1
-  },
-
-  taskDone: {
-    textDecorationLine: "line-through",
-    color: "#aaa"
-  },
-
-  noTasks: {
-    fontSize: 13,
-    color: "#bbb",
-    textAlign: "center",
-    paddingVertical: 8
-  },
-
-  btnDisabled: {
-    opacity: 0.4
-  },
-
-  memberInfo: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8
-  },
-
-  hostBadge: {
-    backgroundColor: "#e8f5e9",
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2
-  },
-
-  hostBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#2e7d32",
-    letterSpacing: 0.5
-  },
-
-  dotMenu: {
-    padding: 6
-  },
-
-  actionSheet: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingTop: 8,
-    paddingBottom: 30,
-    paddingHorizontal: 20
-  },
-
-  actionSheetName: {
+    paddingVertical: 10,
     fontSize: 15,
-    fontWeight: "700",
-    color: "#333",
-    textAlign: "center",
+    color: COLORS.text,
+  },
+  taskAddBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+  },
+  taskAddBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 14 },
+  taskRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: "#eee",
-    marginBottom: 8
+    borderBottomColor: COLORS.background,
+  },
+  taskText: { fontSize: 15, fontWeight: '600', color: COLORS.text, flex: 1 },
+  taskDone: { textDecorationLine: 'line-through', color: COLORS.border },
+  noTasks: {
+    fontSize: 13,
+    color: COLORS.border,
+    textAlign: 'center',
+    paddingVertical: 12,
   },
 
-  actionItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    paddingVertical: 14,
-    borderBottomWidth: 0.5,
-    borderColor: "#f0f0f0"
+  // ── Bottom Sheet ──────────────────────────────────────────────────────────
+  sheetBackground: {
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 16,
   },
+  sheetHandle: { backgroundColor: COLORS.secondary, width: 48 },
+  sheetContent: { flex: 1, paddingHorizontal: 24, paddingTop: 8 },
 
-  actionText: {
-    fontSize: 15,
-    color: "#333"
+  actionRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  wideBtn: {
+    flex: 1,
+    height: 64,
+    borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
   },
-
-  actionCancel: {
-    justifyContent: "center",
-    borderBottomWidth: 0,
-    marginTop: 4
+  chatBtn: {
+    backgroundColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 6,
   },
-
-  actionCancelText: {
-    fontSize: 15,
-    color: "#999",
-    textAlign: "center",
-    width: "100%"
+  wideBtnText: { color: COLORS.white, fontSize: 16, fontWeight: '700' },
+  badge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: COLORS.success,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: COLORS.surface,
   },
+  badgeText: { color: COLORS.white, fontSize: 10, fontWeight: '900' },
+  mediaBtn: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  mediaBtnText: { color: COLORS.primary, fontSize: 16, fontWeight: '700' },
 
-  // ── Settings Modal ───────────────────────────────────────
+  membersHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  membersCount: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+    letterSpacing: 1,
+  },
+  liveBadge: {
+    backgroundColor: '#E0F2F1',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  liveText: { fontSize: 10, fontWeight: '900', color: COLORS.success },
 
+  noMember: {
+    textAlign: 'center',
+    color: COLORS.border,
+    marginVertical: 20,
+    fontSize: 13,
+  },
+  memberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderColor: COLORS.background,
+    gap: 12,
+  },
+  memberAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: COLORS.secondary,
+  },
+  memberAvatarHost: { borderColor: COLORS.success },
+  memberInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  memberName: { fontSize: 15, fontWeight: '600', color: COLORS.text },
+  hostBadge: {
+    backgroundColor: '#E8F5E9',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  hostBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#2E7D32',
+    letterSpacing: 0.5,
+  },
+  dotMenu: { padding: 8 },
+
+  leaveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFEBEE',
+    height: 60,
+    borderRadius: 18,
+    marginTop: 20,
+    gap: 8,
+  },
+  leaveBtnText: { color: COLORS.error, fontSize: 15, fontWeight: '800' },
+
+  // ── Member Action Sheet ───────────────────────────────────────────────────
   modalOverlay: {
     flex: 1,
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.4)"
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(16,42,67,0.4)',
+  },
+  actionSheet: {
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 8,
+    paddingBottom: 32,
+    paddingHorizontal: 24,
+  },
+  actionSheetName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+    textAlign: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderColor: COLORS.secondary,
+    marginBottom: 8,
+  },
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 16,
+    borderBottomWidth: 0.5,
+    borderColor: COLORS.secondary,
+  },
+  actionText: { fontSize: 15, color: COLORS.text, fontWeight: '500' },
+  actionCancel: {
+    borderBottomWidth: 0,
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  actionCancelText: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    width: '100%',
   },
 
+  // ── Settings Modal ────────────────────────────────────────────────────────
   modalBox: {
-    backgroundColor: "#fff",
-    margin: 30,
-    borderRadius: 14,
-    padding: 24
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 32,
+    paddingBottom: 48,
   },
-
   modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 16,
-    color: "#222"
+    fontSize: 22,
+    fontWeight: '800',
+    color: COLORS.primary,
+    marginBottom: 24,
   },
-
   modalLabel: {
     fontSize: 13,
-    color: "#666",
-    marginBottom: 4
+    fontWeight: '700',
+    color: COLORS.accent,
+    marginBottom: 8,
+    letterSpacing: 0.5,
   },
-
   modalInput: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 14,
-    fontSize: 15
+    backgroundColor: COLORS.secondary,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: COLORS.text,
+    marginBottom: 20,
   },
-
-  modalButtons: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 4
-  },
-
+  modalButtons: { flexDirection: 'row', gap: 12, marginTop: 4 },
   cancelBtn: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
+    height: 52,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#ddd",
-    alignItems: "center"
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-
-  cancelText: {
-    color: "#555"
-  },
-
+  cancelText: { color: COLORS.textSecondary, fontWeight: '600' },
   saveBtn: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#4CAF50",
-    alignItems: "center"
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-
-  saveText: {
-    color: "#fff",
-    fontWeight: "bold"
-  },
-
-  badgeDot: {
-  position: "absolute",
-  top: -4,
-  right: -4,
-  backgroundColor: "#e53935",
-  borderRadius: 10,
-  minWidth: 18,
-  height: 18,
-  alignItems: "center",
-  justifyContent: "center",
-  paddingHorizontal: 4
-},
-badgeDotText: {
-  fontSize: 10,
-  color: "#fff",
-  fontWeight: "700"
-}
-  
-
+  saveText: { color: COLORS.white, fontWeight: '700', fontSize: 15 },
 });

@@ -1190,7 +1190,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 32,
-    opacity: 0.9,
+    //opacity: 0.9,
   },
   quoteIconCircle: {
     width: 40,
