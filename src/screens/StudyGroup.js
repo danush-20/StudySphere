@@ -823,7 +823,7 @@ export default function StudyGroupScreen({ route, navigation }) {
               style={styles.actionItem}
               onPress={() => {
                 setMenuMember(null);
-                navigation.navigate('ViewProfile', { uid: menuMember?.id });
+                navigation.navigate('Profile', { uid: menuMember?.id });
               }}
             >
               <Ionicons
