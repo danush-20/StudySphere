@@ -100,25 +100,33 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await signOut(auth);
-            } catch (e) {
-              console.log(e.message);
-            }
-          }
+  const handleLogout = async () => {
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('Are you sure you want to logout?');
+      if (confirmed) {
+        try {
+          await signOut(auth);
+        } catch (e) {
+          console.log(e.message);
         }
-      ]
-    );
+      }
+      return;
+    }
+
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await signOut(auth);
+          } catch (e) {
+            console.log(e.message);
+          }
+        },
+      },
+    ]);
   };
 
   const examLabel = EXAMS.find((e) => e.value === (editing ? exam : profile?.exam))?.label || "—";
