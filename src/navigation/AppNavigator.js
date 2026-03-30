@@ -1,5 +1,7 @@
 import React, { useContext } from "react";
 import { View, ActivityIndicator } from "react-native";
+import { StatusBar } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -20,8 +22,9 @@ import ChatScreen from '../screens/ChatScreen';
 
 const Stack = createNativeStackNavigator();
 
-export default function AppNavigator() {
 
+export default function AppNavigator() {
+  const { isDark } = useTheme();
   const { user, profileExists, loading } = useContext(AuthContext);
 
   const isGoogleUser = user?.providerData?.some(
@@ -40,6 +43,10 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={isDark ? '#0B1326' : '#F0F4F8'}
+      />
       <Stack.Navigator
         screenOptions={{
           headerShown: false,

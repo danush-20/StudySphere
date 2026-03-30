@@ -15,32 +15,22 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useTheme } from '../context/ThemeContext';
 
 import { doc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import { AuthContext } from '../context/AuthContext';
 
-const COLORS = {
-  primary: '#102A43',
-  secondary: '#D9E2EC',
-  accent: '#334E68',
-  background: '#F0F4F8',
-  surface: '#FFFFFF',
-  text: '#102A43',
-  textSecondary: '#486581',
-  border: '#BCCCDC',
-  white: '#FFFFFF',
-};
-
 export default function GoogleSignInScreen() {
   const { refreshProfile } = useContext(AuthContext);
-
+  const { COLORS, isDark } = useTheme();
   const [phone, setPhone] = useState('');
   const [academic, setAcademic] = useState('');
   const [exam, setExam] = useState('');
   const [location, setLocation] = useState('');
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState('');
+  const styles = makeStyles(COLORS);
 
   const labEquipment = [
     'Microscope',
@@ -274,123 +264,124 @@ export default function GoogleSignInScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: COLORS.background },
-  container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 24, paddingVertical: 40 },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logoCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  brandName: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: -0.5,
-  },
-  heroTitle: {
-    fontSize: 44,
-    fontWeight: '800',
-    color: COLORS.primary,
-    lineHeight: 48,
-    marginBottom: 40,
-  },
-  heroItalic: {
-    fontStyle: 'italic',
-    color: COLORS.accent,
-    fontWeight: '500',
-  },
-  formCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
-    elevation: 2,
-  },
-  sectionLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.accent,
-    opacity: 0.6,
-    letterSpacing: 1.5,
-    marginBottom: 20,
-  },
-  inputGroup: { marginBottom: 20 },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.primary,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 15,
-    color: COLORS.primary,
-  },
-  usernameRow: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  usernameInput: {
-    flex: 1,
-    padding: 16,
-    fontSize: 15,
-    color: COLORS.primary,
-  },
-  sparkButton: { padding: 16 },
-  pickerWrapper: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  picker: { height: 56, color: COLORS.primary },
-  locationWrapper: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  locationIcon: { marginRight: 8 },
-  locationInput: {
-    flex: 1,
-    paddingVertical: 16,
-    fontSize: 15,
-    color: COLORS.primary,
-  },
-  registerButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 100,
-    height: 64,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 24,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  registerButtonText: {
-    color: COLORS.white,
-    fontSize: 18,
-    fontWeight: '800',
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: COLORS.background },
+    container: { flex: 1 },
+    scrollContent: { paddingHorizontal: 24, paddingVertical: 40 },
+    logoContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 40,
+    },
+    logoCircle: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      backgroundColor: COLORS.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    brandName: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: COLORS.primary,
+      letterSpacing: -0.5,
+    },
+    heroTitle: {
+      fontSize: 44,
+      fontWeight: '800',
+      color: COLORS.primary,
+      lineHeight: 48,
+      marginBottom: 40,
+    },
+    heroItalic: {
+      fontStyle: 'italic',
+      color: COLORS.accent,
+      fontWeight: '500',
+    },
+    formCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: 24,
+      padding: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.05,
+      shadowRadius: 20,
+      elevation: 2,
+    },
+    sectionLabel: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: COLORS.accent,
+      opacity: 0.6,
+      letterSpacing: 1.5,
+      marginBottom: 20,
+    },
+    inputGroup: { marginBottom: 20 },
+    label: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: COLORS.primary,
+      marginBottom: 8,
+    },
+    input: {
+      backgroundColor: COLORS.secondary,
+      borderRadius: 12,
+      padding: 16,
+      fontSize: 15,
+      color: COLORS.primary,
+    },
+    usernameRow: {
+      flexDirection: 'row',
+      backgroundColor: COLORS.secondary,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    usernameInput: {
+      flex: 1,
+      padding: 16,
+      fontSize: 15,
+      color: COLORS.primary,
+    },
+    sparkButton: { padding: 16 },
+    pickerWrapper: {
+      backgroundColor: COLORS.secondary,
+      borderRadius: 12,
+      overflow: 'hidden',
+    },
+    picker: { height: 56, color: COLORS.primary },
+    locationWrapper: {
+      flexDirection: 'row',
+      backgroundColor: COLORS.secondary,
+      borderRadius: 12,
+      alignItems: 'center',
+      paddingHorizontal: 16,
+    },
+    locationIcon: { marginRight: 8 },
+    locationInput: {
+      flex: 1,
+      paddingVertical: 16,
+      fontSize: 15,
+      color: COLORS.primary,
+    },
+    registerButton: {
+      backgroundColor: COLORS.primary,
+      borderRadius: 100,
+      height: 64,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 24,
+      shadowColor: COLORS.primary,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.3,
+      shadowRadius: 20,
+      elevation: 8,
+    },
+    registerButtonText: {
+      color: COLORS.white,
+      fontSize: 18,
+      fontWeight: '800',
+    },
+  });

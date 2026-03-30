@@ -17,30 +17,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { loginUser } from '../services/authService';
 import { auth } from '../services/firebase';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { useTheme } from '../context/ThemeContext';
 
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 
 WebBrowser.maybeCompleteAuthSession();
 
-// Design System Tokens: Deep Focus (Cognitive Sanctuary)
-const COLORS = {
-  primary: '#102A43',
-  secondary: '#D9E2EC',
-  accent: '#334E68',
-  background: '#F0F4F8',
-  surface: '#FFFFFF',
-  text: '#102A43',
-  textSecondary: '#486581',
-  border: '#BCCCDC',
-  white: '#FFFFFF',
-};
 
 export default function LoginScreen({ navigation, route }) {
   const [email, setEmail] = useState('');
+  const { COLORS, isDark } = useTheme();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const message = route?.params?.message;
+  const styles = makeStyles(COLORS);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId:
@@ -194,7 +185,7 @@ export default function LoginScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,
