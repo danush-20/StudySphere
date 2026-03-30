@@ -15,23 +15,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useTheme } from '../context/ThemeContext';
 
 import { registerUser } from '../services/authService';
 import { auth } from '../services/firebase';
 import { signOut } from 'firebase/auth';
 
-// Design System Tokens: Deep Focus (Cognitive Sanctuary)
-const COLORS = {
-  primary: '#102A43',
-  secondary: '#D9E2EC',
-  accent: '#334E68',
-  background: '#F0F4F8',
-  surface: '#FFFFFF',
-  text: '#102A43',
-  textSecondary: '#486581',
-  border: '#BCCCDC',
-  white: '#FFFFFF',
-};
+
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -41,6 +31,8 @@ export default function RegisterScreen({ navigation }) {
   const [exam, setExam] = useState('');
   const [location, setLocation] = useState('');
   const [username, setUsername] = useState('');
+  const { COLORS, isDark } = useTheme();
+  const styles = makeStyles(COLORS);
 
   const labEquipment = [
     'Microscope',
@@ -165,6 +157,7 @@ export default function RegisterScreen({ navigation }) {
               <Text style={styles.label}>Institutional Email</Text>
               <TextInput
                 placeholder="name@university.edu"
+                placeholderTextColor={COLORS.textSecondary}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -190,6 +183,7 @@ export default function RegisterScreen({ navigation }) {
               <Text style={styles.label}>Phone Number</Text>
               <TextInput
                 placeholder="+91 00000-00000"
+                placeholderTextColor={COLORS.textSecondary}
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
@@ -206,6 +200,7 @@ export default function RegisterScreen({ navigation }) {
               <Text style={styles.label}>Academic Pursuing</Text>
               <TextInput
                 placeholder="e.g. B.Tech Computer Science"
+                placeholderTextColor={COLORS.textSecondary}
                 value={academic}
                 onChangeText={setAcademic}
                 style={styles.input}
@@ -250,6 +245,7 @@ export default function RegisterScreen({ navigation }) {
                 />
                 <TextInput
                   placeholder="Enter your city or campus..."
+                  placeholderTextColor={COLORS.textSecondary}
                   value={location}
                   onChangeText={setLocation}
                   style={styles.locationInput}
@@ -282,119 +278,148 @@ export default function RegisterScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: COLORS.background },
-  container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 24, paddingVertical: 40 },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logoCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  brandName: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: -0.5,
-  },
-  heroTitle: {
-    fontSize: 44,
-    fontWeight: '800',
-    color: COLORS.primary,
-    lineHeight: 48,
-    marginBottom: 16,
-  },
-  heroItalic: { fontStyle: 'italic', color: COLORS.accent, fontWeight: '500' },
-  heroSubtitle: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    lineHeight: 24,
-    marginBottom: 10,
-  },
-  formCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
-    elevation: 2,
-  },
-  sectionLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.accent,
-    opacity: 0.6,
-    letterSpacing: 1.5,
-    marginBottom: 20,
-  },
-  inputGroup: { marginBottom: 20 },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.primary,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 15,
-    color: COLORS.primary,
-  },
-  usernameRow: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  usernameInput: { flex: 1, padding: 16, fontSize: 15, color: COLORS.primary },
-  sparkButton: { padding: 16 },
-  pickerWrapper: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  picker: { height: 56, color: COLORS.primary },
-  locationWrapper: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  locationIcon: { marginRight: 8 },
-  locationInput: {
-    flex: 1,
-    paddingVertical: 16,
-    fontSize: 15,
-    color: COLORS.primary,
-  },
-  registerButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 100,
-    height: 64,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 24,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  registerButtonText: { color: COLORS.white, fontSize: 18, fontWeight: '800' },
-  signInLink: { marginTop: 24, alignItems: 'center' },
-  signInText: { color: COLORS.textSecondary, fontSize: 14 },
-  signInBold: { color: COLORS.primary, fontWeight: '800' },
-});
+const makeStyles = COLORS =>
+  StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: COLORS.background },
+    container: { flex: 1 },
+    scrollContent: { paddingHorizontal: 24, paddingVertical: 40 },
+    logoContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 40,
+    },
+    logoCircle: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      backgroundColor: COLORS.primaryBtn, // was COLORS.primary — dark navy, not bright blue
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    brandName: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: COLORS.text, // was COLORS.primary
+      letterSpacing: -0.5,
+    },
+    heroTitle: {
+      fontSize: 44,
+      fontWeight: '800',
+      color: COLORS.text, // was COLORS.primary
+      lineHeight: 48,
+      marginBottom: 16,
+    },
+    heroItalic: {
+      fontStyle: 'italic',
+      color: COLORS.highlight, // was COLORS.accent — highlight (amber) pops nicely in both modes
+      fontWeight: '500',
+    },
+    heroSubtitle: {
+      fontSize: 16,
+      color: COLORS.textSecondary,
+      lineHeight: 24,
+      marginBottom: 10,
+    },
+    formCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: 24,
+      padding: 24,
+      borderWidth: 1, // added — gives card edge definition in dark mode
+      borderColor: COLORS.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.05,
+      shadowRadius: 20,
+      elevation: 2,
+    },
+    sectionLabel: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: COLORS.textSecondary, // was COLORS.accent with opacity — textSecondary is cleaner
+      letterSpacing: 1.5,
+      marginBottom: 20,
+    },
+    inputGroup: { marginBottom: 20 },
+    label: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: COLORS.text, // was COLORS.primary
+      marginBottom: 8,
+    },
+    input: {
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
+      borderRadius: 12,
+      padding: 16,
+      fontSize: 15,
+      color: COLORS.text, // was COLORS.primary
+      borderWidth: 1,
+      borderColor: COLORS.border, // added — definition in dark
+    },
+    usernameRow: {
+      flexDirection: 'row',
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
+      borderRadius: 12,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
+    },
+    usernameInput: {
+      flex: 1,
+      padding: 16,
+      fontSize: 15,
+      color: COLORS.text, // was COLORS.primary
+    },
+    sparkButton: { padding: 16 },
+    pickerWrapper: {
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
+      borderRadius: 12,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
+    },
+    picker: {
+      height: 56,
+      color: COLORS.text, // was COLORS.primary
+    },
+    locationWrapper: {
+      flexDirection: 'row',
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
+      borderRadius: 12,
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
+    },
+    locationIcon: { marginRight: 8 },
+    locationInput: {
+      flex: 1,
+      paddingVertical: 16,
+      fontSize: 15,
+      color: COLORS.text, // was COLORS.primary
+    },
+    registerButton: {
+      backgroundColor: COLORS.primaryBtn, // was COLORS.primary
+      borderRadius: 100,
+      height: 64,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 24,
+      shadowColor: COLORS.primaryBtn, // was COLORS.primary
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.3,
+      shadowRadius: 20,
+      elevation: 8,
+    },
+    registerButtonText: {
+      color: COLORS.primaryBtnText, // was COLORS.white — correct token
+      fontSize: 18,
+      fontWeight: '800',
+    },
+    signInLink: { marginTop: 24, alignItems: 'center' },
+    signInText: { color: COLORS.textSecondary, fontSize: 14 },
+    signInBold: {
+      color: COLORS.primaryBtnText, // was COLORS.primary — matches button text accent
+      fontWeight: '800',
+    },
+  });

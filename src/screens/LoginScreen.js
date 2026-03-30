@@ -185,158 +185,163 @@ export default function LoginScreen({ navigation, route }) {
   );
 }
 
-const makeStyles = (COLORS) => StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 48,
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    marginBottom: 16,
-  },
-  brandName: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: -1,
-  },
-  brandTagline: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.accent,
-    letterSpacing: 2,
-    marginTop: 4,
-  },
-  messageBanner: {
-    backgroundColor: '#E3F9E5',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#3EBD93',
-  },
-  messageText: {
-    color: '#084832',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  form: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.accent,
-    marginBottom: 8,
-    letterSpacing: 1,
-  },
-  input: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: COLORS.text,
-    marginBottom: 20,
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-  },
-  passwordInput: {
-    flex: 1,
-    paddingVertical: 16,
-    fontSize: 16,
-    color: COLORS.text,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 32,
-  },
-  button: {
-    flex: 1,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loginButton: {
-    backgroundColor: COLORS.primary,
-  },
-  loginButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  signUpButton: {
-    backgroundColor: '#D1E9FF',
-  },
-  signUpButtonText: {
-    color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.border,
-    opacity: 0.5,
-  },
-  dividerText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.accent,
-    paddingHorizontal: 16,
-    letterSpacing: 1,
-  },
-  googleButton: {
-    height: 56,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  googleButtonText: {
-    color: COLORS.text,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
+    container: {
+      flex: 1,
+    },
+    content: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 32,
+    },
+    logoContainer: {
+      alignItems: 'center',
+      marginBottom: 48,
+    },
+    logo: {
+      width: 80,
+      height: 80,
+      borderRadius: 24,
+      marginBottom: 16,
+    },
+    brandName: {
+      fontSize: 32,
+      fontWeight: '800',
+      color: COLORS.text, // was COLORS.primary — in dark, primary is light blue accent, text is better
+      letterSpacing: -1,
+    },
+    brandTagline: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: COLORS.textSecondary, // was COLORS.accent — textSecondary reads more naturally here
+      letterSpacing: 2,
+      marginTop: 4,
+    },
+    messageBanner: {
+      backgroundColor: COLORS.success + '22', // success color at ~13% opacity instead of hardcoded green
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: COLORS.success,
+    },
+    messageText: {
+      color: COLORS.success, // was hardcoded #084832 (invisible in dark)
+      fontSize: 14,
+      textAlign: 'center',
+    },
+    form: {
+      marginBottom: 24,
+    },
+    label: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: COLORS.textSecondary, // was COLORS.accent
+      marginBottom: 8,
+      letterSpacing: 1,
+    },
+    input: {
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary — inputBg is the right token for this
+      borderRadius: 12,
+      padding: 16,
+      fontSize: 16,
+      color: COLORS.text,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: COLORS.border, // added — gives definition in dark mode
+    },
+    passwordContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      borderWidth: 1,
+      borderColor: COLORS.border, // added — matches input field
+    },
+    passwordInput: {
+      flex: 1,
+      paddingVertical: 16,
+      fontSize: 16,
+      color: COLORS.text,
+    },
+    row: {
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 32,
+    },
+    button: {
+      flex: 1,
+      height: 56,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loginButton: {
+      backgroundColor: COLORS.primaryBtn, // was COLORS.primary — primaryBtn is dark navy in dark mode
+    },
+    loginButtonText: {
+      color: COLORS.primaryBtnText, // was COLORS.white — correct token
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    signUpButton: {
+      backgroundColor: COLORS.secondaryBtn, // was hardcoded #D1E9FF
+    },
+    signUpButtonText: {
+      color: COLORS.secondaryBtnText, // was COLORS.primary — correct token
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    dividerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 32,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: COLORS.border,
+      opacity: 0.5,
+    },
+    dividerText: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: COLORS.textSecondary, // was COLORS.accent
+      paddingHorizontal: 16,
+      letterSpacing: 1,
+    },
+    googleButton: {
+      height: 56,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      backgroundColor: COLORS.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    googleButtonText: {
+      color: COLORS.text,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    logoCircle: {
+      width: 80,
+      height: 80,
+      borderRadius: 24,
+      backgroundColor: COLORS.primaryBtn, // was COLORS.primary — same reason as loginButton
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+      shadowColor: COLORS.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.2,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+  });

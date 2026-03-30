@@ -264,7 +264,7 @@ export default function GoogleSignInScreen() {
   );
 }
 
-const makeStyles = (COLORS) =>
+const makeStyles = COLORS =>
   StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: COLORS.background },
     container: { flex: 1 },
@@ -278,7 +278,7 @@ const makeStyles = (COLORS) =>
       width: 48,
       height: 48,
       borderRadius: 12,
-      backgroundColor: COLORS.primary,
+      backgroundColor: COLORS.primaryBtn, // was COLORS.primary
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: 12,
@@ -286,25 +286,27 @@ const makeStyles = (COLORS) =>
     brandName: {
       fontSize: 24,
       fontWeight: '800',
-      color: COLORS.primary,
+      color: COLORS.text, // was COLORS.primary
       letterSpacing: -0.5,
     },
     heroTitle: {
       fontSize: 44,
       fontWeight: '800',
-      color: COLORS.primary,
+      color: COLORS.text, // was COLORS.primary
       lineHeight: 48,
       marginBottom: 40,
     },
     heroItalic: {
       fontStyle: 'italic',
-      color: COLORS.accent,
+      color: COLORS.highlight, // was COLORS.accent — amber works in both modes
       fontWeight: '500',
     },
     formCard: {
       backgroundColor: COLORS.surface,
       borderRadius: 24,
       padding: 24,
+      borderWidth: 1, // added
+      borderColor: COLORS.border, // added — card edge in dark mode
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.05,
@@ -314,8 +316,7 @@ const makeStyles = (COLORS) =>
     sectionLabel: {
       fontSize: 10,
       fontWeight: '800',
-      color: COLORS.accent,
-      opacity: 0.6,
+      color: COLORS.textSecondary, // was COLORS.accent with opacity
       letterSpacing: 1.5,
       marginBottom: 20,
     },
@@ -323,64 +324,75 @@ const makeStyles = (COLORS) =>
     label: {
       fontSize: 14,
       fontWeight: '700',
-      color: COLORS.primary,
+      color: COLORS.text, // was COLORS.primary
       marginBottom: 8,
     },
     input: {
-      backgroundColor: COLORS.secondary,
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
       borderRadius: 12,
       padding: 16,
       fontSize: 15,
-      color: COLORS.primary,
+      color: COLORS.text, // was COLORS.primary
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
     },
     usernameRow: {
       flexDirection: 'row',
-      backgroundColor: COLORS.secondary,
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
       borderRadius: 12,
       alignItems: 'center',
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
     },
     usernameInput: {
       flex: 1,
       padding: 16,
       fontSize: 15,
-      color: COLORS.primary,
+      color: COLORS.text, // was COLORS.primary
     },
     sparkButton: { padding: 16 },
     pickerWrapper: {
-      backgroundColor: COLORS.secondary,
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
       borderRadius: 12,
       overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
     },
-    picker: { height: 56, color: COLORS.primary },
+    picker: {
+      height: 56,
+      color: COLORS.text, // was COLORS.primary
+    },
     locationWrapper: {
       flexDirection: 'row',
-      backgroundColor: COLORS.secondary,
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
       borderRadius: 12,
       alignItems: 'center',
       paddingHorizontal: 16,
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
     },
     locationIcon: { marginRight: 8 },
     locationInput: {
       flex: 1,
       paddingVertical: 16,
       fontSize: 15,
-      color: COLORS.primary,
+      color: COLORS.text, // was COLORS.primary
     },
     registerButton: {
-      backgroundColor: COLORS.primary,
+      backgroundColor: COLORS.primaryBtn, // was COLORS.primary
       borderRadius: 100,
       height: 64,
       justifyContent: 'center',
       alignItems: 'center',
       marginTop: 24,
-      shadowColor: COLORS.primary,
+      shadowColor: COLORS.primaryBtn, // was COLORS.primary
       shadowOffset: { width: 0, height: 10 },
       shadowOpacity: 0.3,
       shadowRadius: 20,
       elevation: 8,
     },
     registerButtonText: {
-      color: COLORS.white,
+      color: COLORS.primaryBtnText, // was COLORS.white
       fontSize: 18,
       fontWeight: '800',
     },
