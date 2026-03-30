@@ -76,12 +76,9 @@ export default function RegisterScreen({ navigation }) {
 
       console.log('User registered successfully');
 
-      await signOut(auth);
+      //await signOut(auth);
+      navigation.navigate('VerifyEmail');
 
-      navigation.navigate('Login', {
-        message:
-          'Registration successful! Please verify your email before logging in.',
-      });
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
         Alert.alert(
@@ -146,7 +143,7 @@ export default function RegisterScreen({ navigation }) {
               <Text style={styles.label}>Username</Text>
               <View style={styles.usernameRow}>
                 <TextInput
-                  placeholder="Scholar_Mind"
+                  placeholder=""
                   value={username}
                   onChangeText={setUsername}
                   style={styles.usernameInput}
@@ -274,7 +271,7 @@ export default function RegisterScreen({ navigation }) {
               onPress={() => navigation.navigate('Login')}
             >
               <Text style={styles.signInText}>
-                Already seeking sanctuary?{' '}
+                Already Inside Sanctuary?{' '}
                 <Text style={styles.signInBold}>Sign In</Text>
               </Text>
             </TouchableOpacity>
