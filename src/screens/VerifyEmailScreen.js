@@ -105,7 +105,6 @@ export default function VerifyEmailScreen() {
   return (
     <View style={s.container}>
       <View style={s.card}>
-
         {/* Bouncing email icon */}
         <Animated.View
           style={[
@@ -128,7 +127,11 @@ export default function VerifyEmailScreen() {
             },
           ]}
         >
-          <MaterialIcons name="mark-email-unread" size={42} color={COLORS.primary} />
+          <MaterialIcons
+            name="mark-email-unread"
+            size={42}
+            color={COLORS.primary}
+          />
         </Animated.View>
 
         <Text style={s.title}>Verify Your Email</Text>
@@ -139,7 +142,9 @@ export default function VerifyEmailScreen() {
           <Text style={s.emailText}>{auth.currentUser?.email}</Text>
         </View>
 
-        <Text style={s.subtitle}>Please open the link to verify your account.</Text>
+        <Text style={s.subtitle}>
+          Please open the link to verify your account.
+        </Text>
 
         {/* Pulsing primary button */}
         <Animated.View
@@ -152,7 +157,7 @@ export default function VerifyEmailScreen() {
                 }),
               },
             ],
-            width: "100%",
+            width: '100%',
           }}
         >
           <TouchableOpacity
@@ -163,13 +168,13 @@ export default function VerifyEmailScreen() {
           >
             <View style={s.buttonContent}>
               <Text style={s.primaryText}>
-                {checking ? "Checking..." : "I've Verified"}
+                {checking ? 'Checking...' : "I've Verified"}
               </Text>
               {!checking && (
                 <MaterialIcons
                   name="check-circle"
                   size={20}
-                  color={COLORS.onPrimary}
+                  color= 'green'
                   style={{ marginLeft: 6 }}
                 />
               )}
@@ -184,14 +189,13 @@ export default function VerifyEmailScreen() {
           activeOpacity={0.88}
         >
           <Text style={s.secondaryText}>
-            {resending ? "Sending..." : "Resend Email"}
+            {resending ? 'Sending...' : 'Resend Email'}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
           <Text style={s.logout}>Logout</Text>
         </TouchableOpacity>
-
       </View>
     </View>
   );

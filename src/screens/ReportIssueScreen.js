@@ -300,8 +300,8 @@ export default function ReportIssueScreen({ navigation, route }) {
               {!submitting && (
                 <Ionicons
                   name="send-outline"
-                  size={17}
-                  color={COLORS.onPrimary}
+                  size={15}
+                  color="#ffffff"
                   style={styles.submitIcon}
                 />
               )}
@@ -333,8 +333,8 @@ function makeStyles(COLORS) {
       backgroundColor: COLORS.background,
     },
     header: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       paddingHorizontal: 20,
       paddingVertical: 16,
       backgroundColor: COLORS.surface,
@@ -346,13 +346,13 @@ function makeStyles(COLORS) {
       width: 38,
       height: 38,
       borderRadius: 19,
-      alignItems: "center",
-      justifyContent: "center",
+      alignItems: 'center',
+      justifyContent: 'center',
       backgroundColor: surfaceHigh,
     },
     headerTitle: {
       fontSize: 19,
-      fontWeight: "800",
+      fontWeight: '800',
       color: COLORS.text,
       letterSpacing: -0.4,
     },
@@ -360,8 +360,8 @@ function makeStyles(COLORS) {
       paddingHorizontal: 20,
       paddingTop: 24,
       maxWidth: 480,
-      width: "100%",
-      alignSelf: "center",
+      width: '100%',
+      alignSelf: 'center',
     },
     section: {
       marginBottom: 24,
@@ -369,9 +369,9 @@ function makeStyles(COLORS) {
     },
     sectionLabel: {
       fontSize: 10,
-      fontWeight: "800",
+      fontWeight: '800',
       color: COLORS.textSecondary,
-      textTransform: "uppercase",
+      textTransform: 'uppercase',
       letterSpacing: 1.8,
       marginLeft: 4,
     },
@@ -379,9 +379,9 @@ function makeStyles(COLORS) {
       color: COLORS.error,
     },
     optional: {
-      fontWeight: "400",
+      fontWeight: '400',
       color: COLORS.textSecondary,
-      textTransform: "none",
+      textTransform: 'none',
       letterSpacing: 0,
       fontSize: 11,
     },
@@ -390,20 +390,20 @@ function makeStyles(COLORS) {
       borderRadius: 16,
       borderWidth: 1,
       borderColor: COLORS.border,
-      overflow: "hidden",
+      overflow: 'hidden',
     },
     picker: {
-      width: "100%",
+      width: '100%',
       color: COLORS.text,
     },
     chipsRow: {
-      flexDirection: "row",
-      flexWrap: "wrap",
+      flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: 8,
     },
     chip: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 6,
       borderWidth: 1,
       borderColor: COLORS.border,
@@ -418,7 +418,7 @@ function makeStyles(COLORS) {
     },
     chipText: {
       fontSize: 13,
-      fontWeight: "600",
+      fontWeight: '600',
       color: COLORS.textSecondary,
     },
     chipTextSelected: {
@@ -436,38 +436,38 @@ function makeStyles(COLORS) {
       lineHeight: 22,
     },
     priorityRow: {
-      flexDirection: "row",
+      flexDirection: 'row',
       gap: 10,
     },
     priorityBtn: {
       flex: 1,
       paddingVertical: 13,
       borderRadius: 999,
-      alignItems: "center",
-      justifyContent: "center",
+      alignItems: 'center',
+      justifyContent: 'center',
       backgroundColor: surface,
       borderWidth: 1,
       borderColor: COLORS.border,
     },
     priorityBtnActive: {
-      backgroundColor: COLORS.primaryBtn,
-      borderColor: COLORS.Btnsecondary,
+      backgroundColor: COLORS.warning,
+      borderColor: COLORS.tertiaryBtnText,
     },
     priorityText: {
       fontSize: 13,
-      fontWeight: "700",
+      fontWeight: '700',
       color: COLORS.textSecondary,
     },
     priorityTextActive: {
       color: COLORS.onPrimary,
     },
     submitBtn: {
-      width: "100%",
-      backgroundColor: COLORS.primaryBtn,
+      width: '100%',
+      backgroundColor: COLORS.error,
       borderRadius: 999,
       paddingVertical: 17,
-      alignItems: "center",
-      justifyContent: "center",
+      alignItems: 'center',
+      justifyContent: 'center',
       shadowOpacity: 0,
       marginBottom: 12,
     },
@@ -475,30 +475,30 @@ function makeStyles(COLORS) {
       opacity: 0.6,
     },
     submitText: {
-      color: COLORS.onPrimary,
-      fontWeight: "800",
+      color: COLORS.white,
+      fontWeight: '800',
       fontSize: 15,
       letterSpacing: 0.3,
     },
     cancelBtn: {
-      alignSelf: "center",
+      alignSelf: 'center',
       paddingVertical: 10,
       paddingHorizontal: 16,
       marginBottom: 8,
     },
     cancelText: {
       fontSize: 14,
-      fontWeight: "700",
+      fontWeight: '700',
       color: COLORS.textSecondary,
     },
     submitContent: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
 
     submitIcon: {
-     marginLeft: 6,
+      marginLeft: 6,
     },
   });
 }

@@ -302,17 +302,26 @@ export default function ChatScreen({ route, navigation }) {
             showsVerticalScrollIndicator={false}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+            onContentSizeChange={() =>
+              flatListRef.current?.scrollToEnd({ animated: false })
+            }
             ListEmptyComponent={
               <View style={s.emptyChat}>
-                <Ionicons name="chatbubbles-outline" size={52} color={COLORS.border} />
+                <Ionicons
+                  name="chatbubbles-outline"
+                  size={52}
+                  color={COLORS.tertiaryBtnText}
+                />
                 <Text style={s.emptyChatTitle}>No messages yet</Text>
-                <Text style={s.emptyChatSub}>Say hello to the group 👋</Text>
+                <Text style={s.emptyChatSub}>Say hello to the group</Text>
               </View>
             }
             ListFooterComponent={
               <Animated.View
-                style={[s.typingRow, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
+                style={[
+                  s.typingRow,
+                  { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+                ]}
                 pointerEvents="none"
               >
                 <View style={s.typingBubble}>
@@ -322,8 +331,18 @@ export default function ChatScreen({ route, navigation }) {
                       style={[
                         s.typingDot,
                         {
-                          opacity: dot.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }),
-                          transform: [{ translateY: dot.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }) }],
+                          opacity: dot.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.3, 1],
+                          }),
+                          transform: [
+                            {
+                              translateY: dot.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, -4],
+                              }),
+                            },
+                          ],
                         },
                       ]}
                     />
@@ -336,7 +355,6 @@ export default function ChatScreen({ route, navigation }) {
 
         {/* Input bar */}
         <View style={[s.inputBar, { paddingBottom: 10 + insets.bottom }]}>
-
           <View style={s.inputWrapper}>
             <TextInput
               ref={inputRef}
@@ -361,7 +379,7 @@ export default function ChatScreen({ route, navigation }) {
             {sending ? (
               <ActivityIndicator size="small" color={COLORS.onPrimary} />
             ) : (
-              <Ionicons name="send" size={18} color={COLORS.onPrimary} />
+              <Ionicons name="send" size={18} color="green" />
             )}
           </TouchableOpacity>
         </View>
@@ -374,7 +392,7 @@ export default function ChatScreen({ route, navigation }) {
 function makeStyles(COLORS) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.background },
-    flex:      { flex: 1 },
+    flex: { flex: 1 },
 
     header: {
       flexDirection: 'row',
@@ -396,7 +414,7 @@ function makeStyles(COLORS) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    headerInfo:     { flex: 1 },
+    headerInfo: { flex: 1 },
     headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     headerTitle: {
       fontSize: 16,
@@ -434,7 +452,11 @@ function makeStyles(COLORS) {
       marginTop: 1,
     },
 
-    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     messagesList: { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 8 },
 
     dateDivider: { alignItems: 'center', marginVertical: 20 },
@@ -452,11 +474,16 @@ function makeStyles(COLORS) {
       letterSpacing: 2,
     },
 
-    messageRow:   { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 2, gap: 6 },
+    messageRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      marginBottom: 2,
+      gap: 6,
+    },
     messageRowMe: { flexDirection: 'row-reverse' },
-    avatarCol:    { width: 32, marginBottom: 2 },
+    avatarCol: { width: 32, marginBottom: 2 },
 
-    messageBubbleWrapper:   { maxWidth: '72%', alignItems: 'flex-start' },
+    messageBubbleWrapper: { maxWidth: '72%', alignItems: 'flex-start' },
     messageBubbleWrapperMe: { alignItems: 'flex-end' },
 
     senderName: {
@@ -486,7 +513,7 @@ function makeStyles(COLORS) {
     },
     bubbleNoAvatar: { marginLeft: 0 },
 
-    bubbleText:   { fontSize: 14, color: COLORS.text, lineHeight: 21 },
+    bubbleText: { fontSize: 14, color: COLORS.text, lineHeight: 21 },
     bubbleTextMe: { color: COLORS.primaryBtnText },
 
     bubbleMeta: {
@@ -496,7 +523,7 @@ function makeStyles(COLORS) {
       marginTop: 4,
       gap: 2,
     },
-    bubbleTime:   { fontSize: 9, color: COLORS.textSecondary, fontWeight: '500' },
+    bubbleTime: { fontSize: 9, color: COLORS.textSecondary, fontWeight: '500' },
     bubbleTimeMe: { color: 'rgba(255,255,255,0.55)' },
 
     typingRow: {
@@ -522,9 +549,14 @@ function makeStyles(COLORS) {
       backgroundColor: COLORS.primary,
     },
 
-    emptyChat:      { flex: 1, alignItems: 'center', paddingTop: 80 },
-    emptyChatTitle: { fontSize: 16, fontWeight: '700', color: COLORS.border, marginTop: 16 },
-    emptyChatSub:   { fontSize: 13, color: COLORS.border, marginTop: 6 },
+    emptyChat: { flex: 1, alignItems: 'center', paddingTop: 80 },
+    emptyChatTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: COLORS.tertiaryBtnText,
+      marginTop: 16,
+    },
+    emptyChatSub: { fontSize: 13, color: COLORS.tertiaryBtnText, marginTop: 6 },
 
     inputBar: {
       flexDirection: 'row',

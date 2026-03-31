@@ -64,7 +64,6 @@ const EXAMS = [
 ];
 
 export default function ProfileScreen({ navigation }) {
-  // ── hooks — ALL inside the component ─────────────────────────────────────
   const { COLORS, isDark, toggleTheme } = useTheme();
   const styles = makeStyles(COLORS);
   const { user, profile, refreshProfile } = useContext(AuthContext);
@@ -194,11 +193,7 @@ export default function ProfileScreen({ navigation }) {
             {/* Academic */}
             <View style={styles.field}>
               <View style={styles.fieldIcon}>
-                <Ionicons
-                  name="school-outline"
-                  size={18}
-                  color={COLORS.primary}
-                />
+                <Ionicons name="school-outline" size={18} color={COLORS.text} />
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>Academic</Text>
@@ -209,7 +204,6 @@ export default function ProfileScreen({ navigation }) {
                     onChangeText={setAcademic}
                     placeholder="e.g. B.Tech, 2nd Year"
                     placeholderTextColor={COLORS.textSecondary}
-                    color={COLORS.text}
                   />
                 ) : (
                   <Text style={styles.fieldValue}>
@@ -225,7 +219,7 @@ export default function ProfileScreen({ navigation }) {
                 <Ionicons
                   name="document-text-outline"
                   size={18}
-                  color={COLORS.primary}
+                  color={COLORS.text}
                 />
               </View>
               <View style={styles.fieldContent}>
@@ -258,7 +252,7 @@ export default function ProfileScreen({ navigation }) {
                 <Ionicons
                   name="location-outline"
                   size={18}
-                  color={COLORS.primary}
+                  color={COLORS.text}
                 />
               </View>
               <View style={styles.fieldContent}>
@@ -270,7 +264,6 @@ export default function ProfileScreen({ navigation }) {
                     onChangeText={setLocation}
                     placeholder="e.g. Chennai, India"
                     placeholderTextColor={COLORS.textSecondary}
-                    color={COLORS.text}
                   />
                 ) : (
                   <Text style={styles.fieldValue}>
@@ -286,7 +279,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons
               name={isDark ? 'sunny-outline' : 'moon-outline'}
               size={22}
-              color={COLORS.primary}
+              color={COLORS.text}
             />
             <Text style={styles.themeToggleText}>
               {isDark ? 'Light Mode' : 'Dark Mode'}
@@ -357,7 +350,6 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
-// ── makeStyles — COLORS passed in so it works with theme ─────────────────────
 const makeStyles = COLORS =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: COLORS.background },
@@ -371,21 +363,23 @@ const makeStyles = COLORS =>
       backgroundColor: COLORS.surface,
       paddingHorizontal: 16,
       paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderColor: COLORS.border,
     },
     backBtn: { padding: 4 },
     headerTitle: {
       fontSize: 18,
       fontWeight: '800',
-      color: COLORS.primary,
+      color: COLORS.text,
     },
     editBtn: {
-      backgroundColor: COLORS.inputBg,
+      backgroundColor: COLORS.primaryBtn,
       paddingHorizontal: 16,
       paddingVertical: 7,
       borderRadius: 20,
     },
     editBtnText: {
-      color: COLORS.primary,
+      color: COLORS.primaryBtnText,
       fontWeight: '700',
       fontSize: 13,
     },
@@ -397,6 +391,8 @@ const makeStyles = COLORS =>
       paddingTop: 32,
       paddingBottom: 28,
       marginBottom: 16,
+      borderBottomWidth: 1,
+      borderColor: COLORS.border,
     },
     avatarCircle: {
       width: 100,
@@ -416,7 +412,7 @@ const makeStyles = COLORS =>
     },
     changeAvatarText: {
       fontSize: 13,
-      color: COLORS.primary,
+      color: COLORS.primaryBtnText,
       fontWeight: '600',
       marginBottom: 14,
     },
@@ -438,10 +434,8 @@ const makeStyles = COLORS =>
       borderRadius: 14,
       paddingHorizontal: 16,
       marginBottom: 12,
-      shadowColor: '#000',
-      shadowOpacity: 0.04,
-      shadowRadius: 6,
-      elevation: 2,
+      borderWidth: 1,
+      borderColor: COLORS.border,
     },
     sectionTitle: {
       fontSize: 12,
@@ -456,7 +450,7 @@ const makeStyles = COLORS =>
     // Field
     field: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start', // fix: was 'center' — caused layout jump on edit
       paddingVertical: 14,
       borderBottomWidth: 0.5,
       borderColor: COLORS.border,
@@ -469,12 +463,13 @@ const makeStyles = COLORS =>
       backgroundColor: COLORS.inputBg,
       alignItems: 'center',
       justifyContent: 'center',
+      marginTop: 2, // aligns icon with label top
     },
     fieldContent: { flex: 1 },
     fieldLabel: {
       fontSize: 11,
       color: COLORS.textSecondary,
-      marginBottom: 3,
+      marginBottom: 4,
       fontWeight: '600',
       textTransform: 'uppercase',
       letterSpacing: 0.4,
@@ -487,11 +482,21 @@ const makeStyles = COLORS =>
     fieldInput: {
       fontSize: 15,
       color: COLORS.text,
-      borderBottomWidth: 1,
-      borderColor: COLORS.primary,
-      paddingVertical: 4,
+      backgroundColor: COLORS.inputBg,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 10,
     },
-    pickerWrapper: { marginTop: -8, marginLeft: -8 },
+    pickerWrapper: {
+      backgroundColor: COLORS.inputBg,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      borderRadius: 8,
+      overflow: 'hidden',
+      marginTop: 4,
+    },
     picker: { height: 44, color: COLORS.text },
 
     // Theme toggle
@@ -503,6 +508,8 @@ const makeStyles = COLORS =>
       marginHorizontal: 16,
       marginTop: 8,
       backgroundColor: COLORS.surfaceHigh,
+      borderWidth: 1,
+      borderColor: COLORS.border,
     },
     themeToggleText: {
       color: COLORS.text,
@@ -553,12 +560,14 @@ const makeStyles = COLORS =>
       backgroundColor: COLORS.overlayBg,
     },
     avatarSheet: {
-      backgroundColor: COLORS.surface,
+      backgroundColor: COLORS.modalBg,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       paddingHorizontal: 20,
       paddingBottom: 36,
       paddingTop: 12,
+      borderTopWidth: 1,
+      borderColor: COLORS.border,
     },
     avatarSheetHandle: {
       width: 40,
@@ -592,7 +601,7 @@ const makeStyles = COLORS =>
       borderColor: 'transparent',
     },
     avatarOptionSelected: {
-      borderColor: COLORS.primary,
+      borderColor: COLORS.primaryBtnText,
       backgroundColor: COLORS.surfaceHigh,
     },
     avatarOptionImage: {

@@ -420,7 +420,7 @@ export default function StudyGroupScreen({ route, navigation }) {
           <Ionicons
             name="copy-outline"
             size={13}
-            color={COLORS.primary}
+            color={COLORS.textSecondary}
             style={{ marginLeft: 4 }}
           />
         </TouchableOpacity>
@@ -552,7 +552,7 @@ export default function StudyGroupScreen({ route, navigation }) {
         >
           <View style={styles.statBox}>
             <View style={styles.statIconCircle}>
-              <Ionicons name="time-outline" size={22} color={COLORS.primary} />
+              <Ionicons name="time-outline" size={22} color={COLORS.text} />
             </View>
             <Text style={styles.statLabel}>FOCUS TIME</Text>
             <Text style={styles.statValue}>{formatFocus()}</Text>
@@ -565,7 +565,7 @@ export default function StudyGroupScreen({ route, navigation }) {
               <Ionicons
                 name="checkmark-circle-outline"
                 size={22}
-                color={COLORS.primary}
+                color={COLORS.text}
               />
             </View>
             <Text style={styles.statLabel}>SESSIONS</Text>
@@ -581,7 +581,7 @@ export default function StudyGroupScreen({ route, navigation }) {
               <Ionicons
                 name="people-outline"
                 size={22}
-                color={COLORS.primary}
+                color={COLORS.text}
               />
             </View>
             <Text style={styles.statLabel}>MEMBERS</Text>
@@ -606,7 +606,7 @@ export default function StudyGroupScreen({ route, navigation }) {
                 <Ionicons
                   name={addingTask ? 'close' : 'add'}
                   size={20}
-                  color={COLORS.primary}
+                  color={COLORS.text}
                 />
                 {!addingTask && (
                   <Text style={styles.addTaskText}>Add Task</Text>
@@ -757,7 +757,7 @@ export default function StudyGroupScreen({ route, navigation }) {
                         <Ionicons
                           name="ellipsis-vertical"
                           size={18}
-                          color={COLORS.border}
+                          color={COLORS.textSecondary}
                         />
                       </TouchableOpacity>
                     )}
@@ -902,7 +902,7 @@ export default function StudyGroupScreen({ route, navigation }) {
   );
 }
 
-const makeStyles = (COLORS) =>
+const makeStyles = COLORS =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.background },
 
@@ -918,7 +918,7 @@ const makeStyles = (COLORS) =>
     logoText: {
       fontSize: 20,
       fontWeight: '800',
-      color: COLORS.primary,
+      color: COLORS.text, // was COLORS.primary
       letterSpacing: -0.5,
     },
     groupName: {
@@ -930,15 +930,17 @@ const makeStyles = (COLORS) =>
     pinBadge: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: '#D1E9FF',
+      backgroundColor: COLORS.surfaceHigh, // was hardcoded #D1E9FF
       paddingHorizontal: 14,
       paddingVertical: 8,
       borderRadius: 12,
+      borderWidth: 1,
+      borderColor: COLORS.border,
     },
     pinText: {
       fontSize: 13,
       fontWeight: '700',
-      color: COLORS.primary,
+      color: COLORS.text, // was COLORS.primary
       letterSpacing: 1,
     },
 
@@ -950,13 +952,16 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.surface,
       borderRadius: 32,
       padding: 28,
-      shadowColor: COLORS.primary,
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 16 },
       shadowOpacity: 0.06,
       shadowRadius: 32,
       elevation: 8,
       marginBottom: 16,
       marginTop: 8,
+      shadowColor: COLORS.primary,
     },
     cardHeader: {
       flexDirection: 'row',
@@ -967,7 +972,7 @@ const makeStyles = (COLORS) =>
     modeBadge: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: COLORS.primary,
+      backgroundColor: COLORS.primaryBtn, // was COLORS.primary
       paddingHorizontal: 14,
       paddingVertical: 8,
       borderRadius: 10,
@@ -979,7 +984,7 @@ const makeStyles = (COLORS) =>
       marginRight: 8,
     },
     modeText: {
-      color: COLORS.white,
+      color: COLORS.primaryBtnText, // was COLORS.white
       fontSize: 10,
       fontWeight: '800',
       letterSpacing: 1,
@@ -999,15 +1004,15 @@ const makeStyles = (COLORS) =>
       height: 200,
       borderRadius: 100,
       borderWidth: 8,
-      borderColor: COLORS.secondary,
-      borderTopColor: COLORS.primary,
+      borderColor: COLORS.timerRingBg, // was COLORS.secondary
+      borderTopColor: COLORS.timerRing, // was COLORS.primary
       justifyContent: 'center',
       alignItems: 'center',
     },
     timerMain: {
       fontSize: 52,
       fontWeight: '800',
-      color: COLORS.primary,
+      color: COLORS.timerText, // was COLORS.primary
       letterSpacing: -2,
     },
     timerSub: {
@@ -1026,8 +1031,8 @@ const makeStyles = (COLORS) =>
       alignItems: 'center',
     },
     startBtn: {
-      backgroundColor: COLORS.primary,
-      shadowColor: COLORS.primary,
+      backgroundColor: COLORS.primaryBtn, // was COLORS.primary
+      shadowColor: COLORS.primaryBtn,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.2,
       shadowRadius: 16,
@@ -1041,7 +1046,7 @@ const makeStyles = (COLORS) =>
       shadowRadius: 16,
       elevation: 6,
     },
-    stopBtn: { backgroundColor: COLORS.secondary },
+    stopBtn: { backgroundColor: COLORS.primaryBtn }, // was COLORS.secondary
     resetBtn: {
       backgroundColor: COLORS.warning,
       shadowColor: COLORS.warning,
@@ -1050,8 +1055,12 @@ const makeStyles = (COLORS) =>
       shadowRadius: 16,
       elevation: 4,
     },
-    actionBtnText: { color: COLORS.white, fontSize: 16, fontWeight: '700' },
-    stopBtnText: { color: COLORS.accent },
+    actionBtnText: {
+      color: COLORS.primaryBtnText, // was COLORS.white
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    stopBtnText: { color: "black" }, // was COLORS.accent
     btnDisabled: { opacity: 0.4 },
     hostOnlyNote: {
       fontSize: 11,
@@ -1070,18 +1079,21 @@ const makeStyles = (COLORS) =>
       alignItems: 'center',
       justifyContent: 'space-around',
       marginBottom: 16,
-      shadowColor: COLORS.primary,
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.04,
       shadowRadius: 12,
       elevation: 2,
+      shadowColor: COLORS.primary,
     },
     statBox: { flex: 1, alignItems: 'center', gap: 6 },
     statIconCircle: {
       width: 44,
       height: 44,
       borderRadius: 14,
-      backgroundColor: '#D1E9FF',
+      backgroundColor: COLORS.surfaceHigh, // was hardcoded #D1E9FF
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -1091,19 +1103,30 @@ const makeStyles = (COLORS) =>
       color: COLORS.textSecondary,
       letterSpacing: 1,
     },
-    statValue: { fontSize: 20, fontWeight: '800', color: COLORS.primary },
-    statDivider: { width: 1, height: 40, backgroundColor: COLORS.secondary },
+    statValue: {
+      fontSize: 20,
+      fontWeight: '800',
+      color: COLORS.text, // was COLORS.primary
+    },
+    statDivider: {
+      width: 1,
+      height: 40,
+      backgroundColor: COLORS.border, // was COLORS.secondary
+    },
 
     // ── Goals Card ────────────────────────────────────────────────────────────
     goalsCard: {
       backgroundColor: COLORS.surface,
       borderRadius: 24,
       padding: 24,
-      shadowColor: COLORS.primary,
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.04,
       shadowRadius: 12,
       elevation: 2,
+      shadowColor: COLORS.primary,
     },
     goalsHeader: {
       flexDirection: 'row',
@@ -1111,39 +1134,56 @@ const makeStyles = (COLORS) =>
       alignItems: 'center',
       marginBottom: 16,
     },
-    goalsTitle: { fontSize: 18, fontWeight: '800', color: COLORS.primary },
+    goalsTitle: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: COLORS.text, // was COLORS.primary
+    },
     addTaskBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    addTaskText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
+    addTaskText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: COLORS.primary, // was COLORS.primary
+    },
     taskInputRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
     taskInput: {
       flex: 1,
-      backgroundColor: COLORS.secondary,
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
       borderRadius: 12,
       paddingHorizontal: 14,
       paddingVertical: 10,
       fontSize: 15,
       color: COLORS.text,
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
     },
     taskAddBtn: {
-      backgroundColor: COLORS.primary,
+      backgroundColor: COLORS.primaryBtn, // was COLORS.primary
       borderRadius: 12,
       paddingHorizontal: 16,
       justifyContent: 'center',
     },
-    taskAddBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 14 },
+    taskAddBtnText: {
+      color: COLORS.primaryBtnText, // was COLORS.white
+      fontWeight: '700',
+      fontSize: 14,
+    },
     taskRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
       paddingVertical: 14,
       borderBottomWidth: 1,
-      borderBottomColor: COLORS.background,
+      borderBottomColor: COLORS.border, // was COLORS.background
     },
     taskText: { fontSize: 15, fontWeight: '600', color: COLORS.text, flex: 1 },
-    taskDone: { textDecorationLine: 'line-through', color: COLORS.border },
+    taskDone: {
+      textDecorationLine: 'line-through',
+      color: COLORS.textSecondary, // was COLORS.border — too faint
+    },
     noTasks: {
       fontSize: 13,
-      color: COLORS.border,
+      color: COLORS.textSecondary, // was COLORS.border
       textAlign: 'center',
       paddingVertical: 12,
     },
@@ -1153,13 +1193,13 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.surface,
       borderTopLeftRadius: 32,
       borderTopRightRadius: 32,
-      shadowColor: COLORS.primary,
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: -8 },
       shadowOpacity: 0.08,
       shadowRadius: 24,
       elevation: 16,
     },
-    sheetHandle: { backgroundColor: COLORS.secondary, width: 48 },
+    sheetHandle: { backgroundColor: COLORS.border, width: 48 }, // was COLORS.secondary
     sheetContent: { flex: 1, paddingHorizontal: 24, paddingTop: 8 },
 
     actionRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
@@ -1173,14 +1213,18 @@ const makeStyles = (COLORS) =>
       gap: 10,
     },
     chatBtn: {
-      backgroundColor: COLORS.primary,
-      shadowColor: COLORS.primary,
+      backgroundColor: COLORS.chatBtn, // was COLORS.primary — dedicated token
+      shadowColor: COLORS.chatBtn,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.15,
       shadowRadius: 16,
       elevation: 6,
     },
-    wideBtnText: { color: COLORS.white, fontSize: 16, fontWeight: '700' },
+    wideBtnText: {
+      color: COLORS.white, // was COLORS.white — dedicated token
+      fontSize: 16,
+      fontWeight: '700',
+    },
     badge: {
       position: 'absolute',
       top: -8,
@@ -1196,11 +1240,15 @@ const makeStyles = (COLORS) =>
     },
     badgeText: { color: COLORS.white, fontSize: 10, fontWeight: '900' },
     mediaBtn: {
-      backgroundColor: COLORS.surface,
+      backgroundColor: COLORS.prim, // was COLORS.surface — dedicated token
       borderWidth: 1,
       borderColor: COLORS.border,
     },
-    mediaBtnText: { color: COLORS.primary, fontSize: 16, fontWeight: '700' },
+    mediaBtnText: {
+      color: COLORS.primary, // was COLORS.primary — dedicated token
+      fontSize: 16,
+      fontWeight: '700',
+    },
 
     membersHeader: {
       flexDirection: 'row',
@@ -1215,7 +1263,7 @@ const makeStyles = (COLORS) =>
       letterSpacing: 1,
     },
     liveBadge: {
-      backgroundColor: '#E0F2F1',
+      backgroundColor: COLORS.success + '22', // was hardcoded #E0F2F1
       paddingHorizontal: 8,
       paddingVertical: 3,
       borderRadius: 6,
@@ -1224,7 +1272,7 @@ const makeStyles = (COLORS) =>
 
     noMember: {
       textAlign: 'center',
-      color: COLORS.border,
+      color: COLORS.textSecondary, // was COLORS.border
       marginVertical: 20,
       fontSize: 13,
     },
@@ -1233,7 +1281,7 @@ const makeStyles = (COLORS) =>
       alignItems: 'center',
       paddingVertical: 12,
       borderBottomWidth: 1,
-      borderColor: COLORS.background,
+      borderColor: COLORS.border, // was COLORS.background
       gap: 12,
     },
     memberAvatar: {
@@ -1241,7 +1289,7 @@ const makeStyles = (COLORS) =>
       height: 44,
       borderRadius: 22,
       borderWidth: 2,
-      borderColor: COLORS.secondary,
+      borderColor: COLORS.border, // was COLORS.secondary
     },
     memberAvatarHost: { borderColor: COLORS.success },
     memberInfo: {
@@ -1252,7 +1300,7 @@ const makeStyles = (COLORS) =>
     },
     memberName: { fontSize: 15, fontWeight: '600', color: COLORS.text },
     hostBadge: {
-      backgroundColor: '#E8F5E9',
+      backgroundColor: COLORS.success + '22', // was hardcoded #E8F5E9
       borderRadius: 6,
       paddingHorizontal: 8,
       paddingVertical: 3,
@@ -1260,7 +1308,7 @@ const makeStyles = (COLORS) =>
     hostBadgeText: {
       fontSize: 10,
       fontWeight: '700',
-      color: '#2E7D32',
+      color: COLORS.success, // was hardcoded #2E7D32
       letterSpacing: 0.5,
     },
     dotMenu: { padding: 8 },
@@ -1269,7 +1317,7 @@ const makeStyles = (COLORS) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#FFEBEE',
+      backgroundColor: COLORS.error + '18', // was hardcoded #FFEBEE
       height: 60,
       borderRadius: 18,
       marginTop: 20,
@@ -1281,10 +1329,10 @@ const makeStyles = (COLORS) =>
     modalOverlay: {
       flex: 1,
       justifyContent: 'flex-end',
-      backgroundColor: 'rgba(16,42,67,0.4)',
+      backgroundColor: COLORS.overlayBg, // was hardcoded rgba
     },
     actionSheet: {
-      backgroundColor: COLORS.surface,
+      backgroundColor: COLORS.modalBg, // was COLORS.surface
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
       paddingTop: 8,
@@ -1298,7 +1346,7 @@ const makeStyles = (COLORS) =>
       textAlign: 'center',
       paddingVertical: 16,
       borderBottomWidth: 1,
-      borderColor: COLORS.secondary,
+      borderColor: COLORS.border, // was COLORS.secondary
       marginBottom: 8,
     },
     actionItem: {
@@ -1307,7 +1355,7 @@ const makeStyles = (COLORS) =>
       gap: 14,
       paddingVertical: 16,
       borderBottomWidth: 0.5,
-      borderColor: COLORS.secondary,
+      borderColor: COLORS.border, // was COLORS.secondary
     },
     actionText: { fontSize: 15, color: COLORS.text, fontWeight: '500' },
     actionCancel: {
@@ -1324,7 +1372,7 @@ const makeStyles = (COLORS) =>
 
     // ── Settings Modal ────────────────────────────────────────────────────────
     modalBox: {
-      backgroundColor: COLORS.surface,
+      backgroundColor: COLORS.modalBg, // was COLORS.surface
       borderTopLeftRadius: 32,
       borderTopRightRadius: 32,
       padding: 32,
@@ -1333,23 +1381,25 @@ const makeStyles = (COLORS) =>
     modalTitle: {
       fontSize: 22,
       fontWeight: '800',
-      color: COLORS.primary,
+      color: COLORS.text, // was COLORS.primary
       marginBottom: 24,
     },
     modalLabel: {
       fontSize: 13,
       fontWeight: '700',
-      color: COLORS.accent,
+      color: COLORS.textSecondary, // was COLORS.accent
       marginBottom: 8,
       letterSpacing: 0.5,
     },
     modalInput: {
-      backgroundColor: COLORS.secondary,
+      backgroundColor: COLORS.inputBg, // was COLORS.secondary
       borderRadius: 12,
       padding: 16,
       fontSize: 16,
       color: COLORS.text,
       marginBottom: 20,
+      borderWidth: 1,
+      borderColor: COLORS.border, // added
     },
     modalButtons: { flexDirection: 'row', gap: 12, marginTop: 4 },
     cancelBtn: {
@@ -1366,9 +1416,13 @@ const makeStyles = (COLORS) =>
       flex: 1,
       height: 52,
       borderRadius: 14,
-      backgroundColor: COLORS.primary,
+      backgroundColor: COLORS.primaryBtn, // was COLORS.primary
       alignItems: 'center',
       justifyContent: 'center',
     },
-    saveText: { color: COLORS.white, fontWeight: '700', fontSize: 15 },
+    saveText: {
+      color: COLORS.primaryBtnText, // was COLORS.white
+      fontWeight: '700',
+      fontSize: 15,
+    },
   });

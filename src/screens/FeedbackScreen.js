@@ -131,7 +131,7 @@ export default function FeedbackScreen({ navigation, route }) {
             <MaterialCommunityIcons
               name="book-open-page-variant"
               size={40}
-              color={COLORS.onPrimary}
+              color={COLORS.primary}
             />
           </View>
           <Text style={styles.brandName}>StudySphere</Text>
@@ -193,7 +193,7 @@ export default function FeedbackScreen({ navigation, route }) {
                 <Ionicons
                   name="checkmark-circle"
                   size={20}
-                  color={COLORS.onPrimary}
+                  color="green"
                   style={{ marginLeft: 8 }}
                 />
               )}
@@ -276,6 +276,7 @@ function makeStyles(COLORS) {
       alignItems: "center",
       marginBottom: 20,
       marginTop: 4,
+      shadowColor: COLORS.primary,
     },
     logoCircle: {
       width: 68,

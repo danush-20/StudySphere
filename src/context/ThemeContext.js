@@ -39,6 +39,7 @@ export const LIGHT = {
   chatBtnText: '#FFFFFF',
   mediaBtn: '#FFFFFF',
   mediaBtnText: '#102A43',
+  tertiaryBtnText: '#FFFFFF',
 };
 
 export const DARK = {
@@ -88,6 +89,8 @@ export const DARK = {
   chatBtnText: '#8ED5FF',
   mediaBtn: '#1A2236',
   mediaBtnText: '#FFC176',
+
+  tertiaryBtnText: '#00354A',
 };
 
 const ThemeContext = createContext();

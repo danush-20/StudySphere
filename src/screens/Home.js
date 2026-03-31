@@ -678,7 +678,7 @@ export default function Home({ navigation }) {
         {/* Your Sessions */}
         {myGroups.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Sessions</Text>
+            <Text style={styles.sectionTitle}>Your Sessions{'\n'}</Text> 
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -731,7 +731,7 @@ export default function Home({ navigation }) {
         {/* Joined Sessions */}
         {joinedGroups.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Joined Sessions</Text>
+            <Text style={styles.sectionTitle}>Joined Sessions{'\n'}</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -1477,7 +1477,7 @@ const makeStyles = (COLORS) =>
       marginTop: 8,
     },
     modalPrimaryButtonText: {
-      color: COLORS.white,
+      color: COLORS.tertiaryBtnText,
       fontSize: 16,
       fontWeight: '700',
     },

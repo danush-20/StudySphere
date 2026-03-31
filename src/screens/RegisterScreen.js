@@ -16,6 +16,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
+import { SimpleLineIcons } from '@expo/vector-icons';
 
 import { registerUser } from '../services/authService';
 import { auth } from '../services/firebase';
@@ -144,10 +145,7 @@ export default function RegisterScreen({ navigation }) {
                   onPress={generateUsername}
                   style={styles.sparkButton}
                 >
-                  <Image
-                    source={require('../../assets/generate.png')}
-                    style={{ width: 24, height: 24, resizeMode: 'contain' }}
-                  />
+                  <SimpleLineIcons name="magic-wand" size={24} color="#0b0709" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -419,7 +417,7 @@ const makeStyles = COLORS =>
     signInLink: { marginTop: 24, alignItems: 'center' },
     signInText: { color: COLORS.textSecondary, fontSize: 14 },
     signInBold: {
-      color: COLORS.primaryBtnText, // was COLORS.primary — matches button text accent
+      color: COLORS.secondarybtnText, // was COLORS.primary — matches button text accent
       fontWeight: '800',
     },
   });
