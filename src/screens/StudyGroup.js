@@ -246,6 +246,15 @@ export default function StudyGroupScreen({ route, navigation }) {
     return () => off(messagesRef);
   }, [lastReadTime]);
 
+  // ─── BackButton during session ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    const unsub = navigation.addListener('beforeRemove', e => {
+      e.preventDefault();
+      navigation.navigate('Home');
+    });
+    return unsub;
+  }, [navigation]);
+
   // ─── Timer sync ───────────────────────────────────────────────────────────
 
   const syncTimerToFirestore = async updates => {
@@ -578,11 +587,7 @@ export default function StudyGroupScreen({ route, navigation }) {
 
           <View style={styles.statBox}>
             <View style={styles.statIconCircle}>
-              <Ionicons
-                name="people-outline"
-                size={22}
-                color={COLORS.text}
-              />
+              <Ionicons name="people-outline" size={22} color={COLORS.text} />
             </View>
             <Text style={styles.statLabel}>MEMBERS</Text>
             <Text style={styles.statValue}>
