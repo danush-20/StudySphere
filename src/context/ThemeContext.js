@@ -70,7 +70,7 @@ export const DARK = {
   // Buttons
   primaryBtn: '#1A3A5C', // dark navy button — not bright blue
   primaryBtnText: '#8ED5FF', // light blue text on dark button
-  Btnsecondary: '#1A2236',
+  secondaryBtn: '#1A2236',
   secondaryBtnText: '#8ED5FF',
 
   // Session cards — dark surfaces, NOT light blue
