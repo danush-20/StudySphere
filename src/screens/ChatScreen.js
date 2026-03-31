@@ -371,16 +371,15 @@ export default function ChatScreen({ route, navigation }) {
 }
 
 // ── Theme-aware styles ────────────────────────────────────────────────────────
-function makeStyles(C) {
+function makeStyles(COLORS) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: C.background },
+    container: { flex: 1, backgroundColor: COLORS.background },
     flex:      { flex: 1 },
 
-    // ── Header ──────────────────────────────────────────────────────
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: C.surface,
+      backgroundColor: COLORS.surface,
       paddingHorizontal: 16,
       paddingVertical: 12,
       gap: 10,
@@ -402,7 +401,7 @@ function makeStyles(C) {
     headerTitle: {
       fontSize: 16,
       fontWeight: '700',
-      color: C.primary,
+      color: COLORS.primary,
       letterSpacing: -0.3,
     },
     livePill: {
@@ -418,30 +417,29 @@ function makeStyles(C) {
       width: 5,
       height: 5,
       borderRadius: 3,
-      backgroundColor: C.error,
+      backgroundColor: COLORS.error,
     },
     liveText: {
       fontSize: 8,
       fontWeight: '800',
-      color: C.error,
+      color: COLORS.error,
       letterSpacing: 1.2,
     },
     headerSub: {
       fontSize: 10,
-      color: C.textSecondary,
+      color: COLORS.textSecondary,
       fontWeight: '700',
       textTransform: 'uppercase',
       letterSpacing: 1.2,
       marginTop: 1,
     },
 
-    // ── Messages ─────────────────────────────────────────────────────
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     messagesList: { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 8 },
 
     dateDivider: { alignItems: 'center', marginVertical: 20 },
     datePill: {
-      backgroundColor: C.primaryBtn,
+      backgroundColor: COLORS.primaryBtn,
       paddingHorizontal: 16,
       paddingVertical: 6,
       borderRadius: 999,
@@ -449,7 +447,7 @@ function makeStyles(C) {
     datePillText: {
       fontSize: 9,
       fontWeight: '800',
-      color: C.primaryBtnText,
+      color: COLORS.primaryBtnText,
       textTransform: 'uppercase',
       letterSpacing: 2,
     },
@@ -464,7 +462,7 @@ function makeStyles(C) {
     senderName: {
       fontSize: 9,
       fontWeight: '700',
-      color: C.textSecondary,
+      color: COLORS.textSecondary,
       textTransform: 'uppercase',
       letterSpacing: 1.2,
       marginBottom: 3,
@@ -479,17 +477,17 @@ function makeStyles(C) {
       maxWidth: '100%',
     },
     bubbleThem: {
-      backgroundColor: C.surfaceHigh,
+      backgroundColor: COLORS.surfaceHigh,
       borderBottomLeftRadius: 4,
     },
     bubbleMe: {
-      backgroundColor: C.primaryBtn,
+      backgroundColor: COLORS.primaryBtn,
       borderBottomRightRadius: 4,
     },
     bubbleNoAvatar: { marginLeft: 0 },
 
-    bubbleText:   { fontSize: 14, color: C.text, lineHeight: 21 },
-    bubbleTextMe: { color: C.primaryBtnText },
+    bubbleText:   { fontSize: 14, color: COLORS.text, lineHeight: 21 },
+    bubbleTextMe: { color: COLORS.primaryBtnText },
 
     bubbleMeta: {
       flexDirection: 'row',
@@ -498,10 +496,9 @@ function makeStyles(C) {
       marginTop: 4,
       gap: 2,
     },
-    bubbleTime:   { fontSize: 9, color: C.textSecondary, fontWeight: '500' },
+    bubbleTime:   { fontSize: 9, color: COLORS.textSecondary, fontWeight: '500' },
     bubbleTimeMe: { color: 'rgba(255,255,255,0.55)' },
 
-    // ── Typing indicator ─────────────────────────────────────────────
     typingRow: {
       paddingHorizontal: 4,
       paddingVertical: 10,
@@ -511,7 +508,7 @@ function makeStyles(C) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 5,
-      backgroundColor: C.surfaceHigh,
+      backgroundColor: COLORS.surfaceHigh,
       paddingHorizontal: 14,
       paddingVertical: 10,
       borderRadius: 14,
@@ -522,21 +519,19 @@ function makeStyles(C) {
       width: 6,
       height: 6,
       borderRadius: 3,
-      backgroundColor: C.primary,
+      backgroundColor: COLORS.primary,
     },
 
-    // ── Empty ────────────────────────────────────────────────────────
     emptyChat:      { flex: 1, alignItems: 'center', paddingTop: 80 },
-    emptyChatTitle: { fontSize: 16, fontWeight: '700', color: C.border, marginTop: 16 },
-    emptyChatSub:   { fontSize: 13, color: C.border, marginTop: 6 },
+    emptyChatTitle: { fontSize: 16, fontWeight: '700', color: COLORS.border, marginTop: 16 },
+    emptyChatSub:   { fontSize: 13, color: COLORS.border, marginTop: 6 },
 
-    // ── Input bar ────────────────────────────────────────────────────
     inputBar: {
       flexDirection: 'row',
-      alignItems: 'center',        // ← centres all children including send btn
+      alignItems: 'center',
       paddingHorizontal: 14,
       paddingTop: 10,
-      backgroundColor: C.surface,
+      backgroundColor: COLORS.surface,
       gap: 10,
       shadowColor: '#000',
       shadowOpacity: 0.04,
@@ -548,7 +543,7 @@ function makeStyles(C) {
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: C.secondaryBtn,
+      backgroundColor: COLORS.secondaryBtn,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -556,7 +551,7 @@ function makeStyles(C) {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: C.inputBg,
+      backgroundColor: COLORS.inputBg,
       borderRadius: 999,
       paddingHorizontal: 16,
       paddingVertical: 6,
@@ -565,17 +560,16 @@ function makeStyles(C) {
     input: {
       flex: 1,
       fontSize: 14,
-      color: C.text,
+      color: COLORS.text,
       maxHeight: 100,
       paddingRight: 6,
     },
 
-    // Send button — fixed dimensions + both axes centred
     sendBtn: {
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: C.primaryBtn,
+      backgroundColor: COLORS.primaryBtn,
       alignItems: 'center',
       justifyContent: 'center',
     },
