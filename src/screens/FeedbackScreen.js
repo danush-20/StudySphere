@@ -12,20 +12,22 @@ import {
   Animated,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "../services/firebase";
+import { useTheme } from "../context/ThemeContext";
 
 export default function FeedbackScreen({ navigation, route }) {
   const { groupName, sessionId } = route.params || {};
   const insets = useSafeAreaInsets();
+  const { COLORS } = useTheme();
+  const styles = makeStyles(COLORS);
 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-  // Pulse animation for submit button
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -37,9 +39,8 @@ export default function FeedbackScreen({ navigation, route }) {
     );
     pulse.start();
     return () => pulse.stop();
-  }, []);
+  }, [pulseAnim]);
 
-  // Keyboard listeners — same pattern as ChatScreen
   useEffect(() => {
     const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
@@ -47,10 +48,11 @@ export default function FeedbackScreen({ navigation, route }) {
     const onHide = () => setKeyboardHeight(0);
     const showSub = Keyboard.addListener(showEvent, onShow);
     const hideSub = Keyboard.addListener(hideEvent, onHide);
-    return () => { showSub.remove(); hideSub.remove(); };
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
   }, []);
-
-  // ── Logic (original, unchanged) ───────────────────────────────────────────
 
   const handleSubmit = async () => {
     if (rating === 0) {
@@ -95,8 +97,6 @@ export default function FeedbackScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
@@ -104,10 +104,11 @@ export default function FeedbackScreen({ navigation, route }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={22} color="#002678" />
+            <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Feedback</Text>
         </View>
+
         <TouchableOpacity
           onPress={() => navigation.navigate("Home")}
           activeOpacity={0.7}
@@ -125,21 +126,24 @@ export default function FeedbackScreen({ navigation, route }) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Logo */}
-        <Text style={styles.logo}>StudySphere</Text>
+        <View style={styles.logoContainer}>
+          <View style={styles.logoCircle}>
+            <MaterialCommunityIcons
+              name="book-open-page-variant"
+              size={40}
+              color={COLORS.onPrimary}
+            />
+          </View>
+          <Text style={styles.brandName}>StudySphere</Text>
+          <Text style={styles.brandTagline}>THE COGNITIVE SANCTUARY</Text>
+        </View>
 
-        {/* Glass card */}
         <View style={styles.card}>
-
-          {/* Heading */}
           <View style={styles.cardHeader}>
             <Text style={styles.heading}>How was your session?</Text>
-            {groupName ? (
-              <Text style={styles.subheading}>{groupName}</Text>
-            ) : null}
+            {groupName ? <Text style={styles.subheading}>{groupName}</Text> : null}
           </View>
 
-          {/* Stars */}
           <View style={styles.starsSection}>
             <View style={styles.starsRow}>
               {[1, 2, 3, 4, 5].map((star) => (
@@ -151,7 +155,7 @@ export default function FeedbackScreen({ navigation, route }) {
                   <Ionicons
                     name={star <= rating ? "star" : "star-outline"}
                     size={40}
-                    color={star <= rating ? "#FFC107" : "#c4c5d5"}
+                    color={star <= rating ? "#FFC107" : COLORS.border}
                   />
                 </TouchableOpacity>
               ))}
@@ -161,13 +165,12 @@ export default function FeedbackScreen({ navigation, route }) {
             </Text>
           </View>
 
-          {/* Comment */}
           <View style={styles.commentSection}>
             <Text style={styles.inputLabel}>Detailed Thoughts</Text>
             <TextInput
               style={styles.textArea}
               placeholder="Tell us about your experience..."
-              placeholderTextColor="#747684"
+              placeholderTextColor={COLORS.textSecondary}
               value={comment}
               onChangeText={setComment}
               multiline
@@ -176,7 +179,6 @@ export default function FeedbackScreen({ navigation, route }) {
             />
           </View>
 
-          {/* Submit button */}
           <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
             <TouchableOpacity
               style={[styles.submitBtn, submitting && styles.btnDisabled]}
@@ -188,256 +190,265 @@ export default function FeedbackScreen({ navigation, route }) {
                 {submitting ? "Submitting..." : "Submit Feedback"}
               </Text>
               {!submitting && (
-                <Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginLeft: 8 }} />
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={COLORS.onPrimary}
+                  style={{ marginLeft: 8 }}
+                />
               )}
             </TouchableOpacity>
           </Animated.View>
 
-          {/* Divider */}
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>OR</Text>
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Report button */}
           <TouchableOpacity
             style={styles.reportBtn}
             onPress={() => navigation.navigate("ReportIssue")}
             activeOpacity={0.85}
           >
-            <Ionicons name="flag-outline" size={17} color="#ba1a1a" />
+            <Ionicons name="flag-outline" size={17} color={COLORS.error} />
             <Text style={styles.reportBtnText}>Report an Issue</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Editorial footer */}
         <View style={styles.editorial}>
           <Text style={styles.editorialLabel}>Community Note</Text>
           <Text style={styles.editorialText}>
             Your feedback helps us curate better study sessions for everyone in the Sphere.
           </Text>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f7f9fb",
-  },
-
-  // ── Header ────────────────────────────────────────────────────────
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: "transparent",
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#191c1e",
-    letterSpacing: -0.2,
-  },
-  skipBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  skipText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#747684",
-  },
-
-  // ── Scroll ────────────────────────────────────────────────────────
-  scroll: {
-    paddingHorizontal: 20,
-    alignItems: "center",
-  },
-
-  // ── Logo ──────────────────────────────────────────────────────────
-  logo: {
-    fontSize: 22,
-    fontWeight: "800",
-    fontStyle: "italic",
-    color: "#0b3aa4",
-    letterSpacing: -1,
-    marginBottom: 16,
-    marginTop: 4,
-  },
-
-  // ── Glass card ────────────────────────────────────────────────────
-  card: {
-    width: "100%",
-    backgroundColor: "rgba(255,255,255,0.75)",
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.5)",
-    // soft shadow
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
-    gap: 20,
-  },
-
-  cardHeader: {
-    alignItems: "center",
-    gap: 4,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#191c1e",
-    letterSpacing: -0.5,
-    textAlign: "center",
-  },
-  subheading: {
-    fontSize: 13,
-    color: "#444653",
-    fontWeight: "500",
-    textAlign: "center",
-  },
-
-  // ── Stars ─────────────────────────────────────────────────────────
-  starsSection: {
-    alignItems: "center",
-    gap: 8,
-  },
-  starsRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  ratingLabel: {
-    fontSize: 14,
-    color: "#747684",
-    fontWeight: "500",
-  },
-  ratingLabelActive: {
-    color: "#002678",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-
-  // ── Comment ───────────────────────────────────────────────────────
-  commentSection: {
-    gap: 8,
-  },
-  inputLabel: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#747684",
-    textTransform: "uppercase",
-    letterSpacing: 1.5,
-  },
-  textArea: {
-    backgroundColor: "rgba(242,244,246,0.6)",
-    borderRadius: 16,
-    padding: 14,
-    fontSize: 14,
-    color: "#191c1e",
-    minHeight: 110,
-    lineHeight: 21,
-  },
-
-  // ── Submit button ─────────────────────────────────────────────────
-  submitBtn: {
-    width: "100%",
-    backgroundColor: "#102A43",
-    borderRadius: 999,
-    paddingVertical: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#102A43",
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  btnDisabled: { opacity: 0.6 },
-  submitText: {
-    color: "#fff",
-    fontWeight: "800",
-    fontSize: 15,
-    letterSpacing: 0.2,
-  },
-
-  // ── Divider ───────────────────────────────────────────────────────
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(196,197,213,0.35)",
-  },
-  dividerText: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#747684",
-    textTransform: "uppercase",
-    letterSpacing: 1.5,
-  },
-
-  // ── Report button ─────────────────────────────────────────────────
-  reportBtn: {
-    width: "100%",
-    borderRadius: 999,
-    paddingVertical: 13,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "rgba(186,26,26,0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(186,26,26,0.12)",
-  },
-  reportBtnText: {
-    color: "#ba1a1a",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-
-  // ── Editorial footer ──────────────────────────────────────────────
-  editorial: {
-    marginTop: 20,
-    width: "100%",
-    paddingHorizontal: 4,
-    gap: 4,
-  },
-  editorialLabel: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#002678",
-    textTransform: "uppercase",
-    letterSpacing: 1.5,
-  },
-  editorialText: {
-    fontSize: 12,
-    color: "#444653",
-    lineHeight: 18,
-  },
-});
+function makeStyles(COLORS) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      backgroundColor: "transparent",
+    },
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: COLORS.text,
+      letterSpacing: -0.2,
+    },
+    skipBtn: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    skipText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: COLORS.textSecondary,
+    },
+    scroll: {
+      paddingHorizontal: 20,
+      alignItems: "center",
+    },
+    logoContainer: {
+      alignItems: "center",
+      marginBottom: 20,
+      marginTop: 4,
+    },
+    logoCircle: {
+      width: 68,
+      height: 68,
+      borderRadius: 24,
+      backgroundColor: COLORS.primaryBtn,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 16,
+      shadowColor: COLORS.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.2,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+    brandName: {
+      fontSize: 26,
+      fontWeight: "800",
+      color: COLORS.text,
+      letterSpacing: -1,
+      lineHeight: 32,
+    },
+    brandTagline: {
+      fontSize: 9,
+      fontWeight: "700",
+      color: COLORS.textSecondary,
+      letterSpacing: 2,
+      marginTop: 4,
+      textTransform: "uppercase",
+    },
+    card: {
+      width: "100%",
+      backgroundColor: COLORS.surface,
+      borderRadius: 20,
+      padding: 24,
+      borderWidth: 1,
+      borderColor: COLORS.surfaceHigh,
+      shadowColor: "#000",
+      shadowOpacity: 0.04,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 3,
+      gap: 20,
+    },
+    cardHeader: {
+      alignItems: "center",
+      gap: 4,
+    },
+    heading: {
+      fontSize: 22,
+      fontWeight: "800",
+      color: COLORS.text,
+      letterSpacing: -0.5,
+      textAlign: "center",
+    },
+    subheading: {
+      fontSize: 13,
+      color: COLORS.textSecondary,
+      fontWeight: "500",
+      textAlign: "center",
+    },
+    starsSection: {
+      alignItems: "center",
+      gap: 8,
+    },
+    starsRow: {
+      flexDirection: "row",
+      gap: 10,
+    },
+    ratingLabel: {
+      fontSize: 14,
+      color: COLORS.textSecondary,
+      fontWeight: "500",
+    },
+    ratingLabelActive: {
+      color: COLORS.primary,
+      fontWeight: "700",
+      fontSize: 16,
+    },
+    commentSection: {
+      gap: 8,
+    },
+    inputLabel: {
+      fontSize: 10,
+      fontWeight: "800",
+      color: COLORS.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 1.5,
+    },
+    textArea: {
+      backgroundColor: COLORS.surfaceHigh,
+      borderRadius: 16,
+      padding: 14,
+      fontSize: 14,
+      color: COLORS.text,
+      minHeight: 110,
+      lineHeight: 21,
+    },
+    submitBtn: {
+      width: "100%",
+      backgroundColor: COLORS.primaryBtn,
+      borderRadius: 999,
+      paddingVertical: 15,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: COLORS.primaryBtn,
+      shadowOpacity: 0.2,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 4,
+    },
+    btnDisabled: {
+      opacity: 0.6,
+    },
+    submitText: {
+      color: COLORS.primaryBtnText,
+      fontWeight: "800",
+      fontSize: 15,
+      letterSpacing: 0.2,
+    },
+    divider: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: COLORS.border,
+      opacity: 0.35,
+    },
+    dividerText: {
+      fontSize: 10,
+      fontWeight: "800",
+      color: COLORS.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 1.5,
+    },
+    reportBtn: {
+      width: "100%",
+      borderRadius: 999,
+      paddingVertical: 13,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: COLORS.errorContainer,
+      borderWidth: 1,
+      borderColor: COLORS.error,
+    },
+    reportBtnText: {
+      color: COLORS.error,
+      fontWeight: "700",
+      fontSize: 14,
+    },
+    editorial: {
+      marginTop: 20,
+      width: "100%",
+      paddingHorizontal: 4,
+      gap: 4,
+    },
+    editorialLabel: {
+      fontSize: 10,
+      fontWeight: "800",
+      color: COLORS.primary,
+      textTransform: "uppercase",
+      letterSpacing: 1.5,
+    },
+    editorialText: {
+      fontSize: 12,
+      color: COLORS.textSecondary,
+      lineHeight: 18,
+    },
+  });
+}
