@@ -10,7 +10,8 @@ import {
   Keyboard,
   Platform,
   Animated,
-} from "react-native";
+  BackHandler,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
@@ -53,6 +54,17 @@ export default function FeedbackScreen({ navigation, route }) {
       hideSub.remove();
     };
   }, []);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.navigate('Home');
+        return true;
+      },
+    );
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const handleSubmit = async () => {
     if (rating === 0) {

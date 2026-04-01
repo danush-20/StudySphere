@@ -19,6 +19,7 @@ import {
   Platform,
   Alert,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
@@ -248,11 +249,26 @@ export default function StudyGroupScreen({ route, navigation }) {
 
   // ─── BackButton during session ───────────────────────────────────────────────────────────
   useEffect(() => {
-    const unsub = navigation.addListener('beforeRemove', e => {
-      e.preventDefault();
-      navigation.navigate('Home');
+    let backHandler = null;
+
+    const unsubFocus = navigation.addListener('focus', () => {
+      backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+        return true;
+      });
     });
-    return unsub;
+
+    const unsubBlur = navigation.addListener('blur', () => {
+      if (backHandler) {
+        backHandler.remove();
+        backHandler = null;
+      }
+    });
+
+    return () => {
+      unsubFocus();
+      unsubBlur();
+      if (backHandler) backHandler.remove();
+    };
   }, [navigation]);
 
   // ─── Timer sync ───────────────────────────────────────────────────────────
@@ -387,6 +403,7 @@ export default function StudyGroupScreen({ route, navigation }) {
         [`members.${uid}`]: false,
       });
       navigation.navigate('Feedback', { groupName, sessionId });
+
     } catch (e) {
       console.log('Leave error:', e.message);
     }
