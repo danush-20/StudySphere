@@ -1070,8 +1070,8 @@ const makeStyles = COLORS =>
     },
     stopBtn: { backgroundColor: COLORS.primaryBtn }, // was COLORS.secondary
     resetBtn: {
-      backgroundColor: COLORS.warning,
-      shadowColor: COLORS.warning,
+      backgroundColor: COLORS.error,
+      shadowColor: COLORS.error,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.2,
       shadowRadius: 16,
@@ -1082,7 +1082,7 @@ const makeStyles = COLORS =>
       fontSize: 16,
       fontWeight: '700',
     },
-    stopBtnText: { color: "black" }, // was COLORS.accent
+    stopBtnText: { color: COLORS.primaryBtnText },
     btnDisabled: { opacity: 0.4 },
     hostOnlyNote: {
       fontSize: 11,

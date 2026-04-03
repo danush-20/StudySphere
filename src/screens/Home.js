@@ -808,7 +808,7 @@ export default function Home({ navigation }) {
 
           {userLocality && nearbyGroups.length === 0 && (
             <View style={styles.emptyPrompt}>
-              <Ionicons name="people-outline" size={20} color={COLORS.border} />
+              <Ionicons name="people-outline" size={20} color={COLORS.textSecondary} />
               <Text style={styles.emptyPromptText}>
                 No public groups found near {userLocality}
               </Text>
@@ -1377,12 +1377,12 @@ const makeStyles = (COLORS) =>
       gap: 8,
       paddingVertical: 16,
     },
-    emptyPromptText: { fontSize: 13, color: COLORS.border },
+    emptyPromptText: { fontSize: 13, color: COLORS.textSecondary },
     emptyState: { alignItems: 'center', paddingTop: 40, paddingHorizontal: 40 },
     emptyTitle: {
       fontSize: 16,
       fontWeight: '700',
-      color: COLORS.border,
+      color: COLORS.textSecondary,
       marginTop: 16,
     },
     emptySubtitle: {
