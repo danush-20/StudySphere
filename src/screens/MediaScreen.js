@@ -338,7 +338,7 @@ export default function MediaScreen({ route, navigation }) {
         }
         ListEmptyComponent={
           <View style={s.emptyState}>
-            <Ionicons name="images-outline" size={52} color={COLORS.border} />
+            <Ionicons name="images-outline" size={52} color={COLORS.textSecondary} />
             <Text style={s.emptyTitle}>No media yet</Text>
             <Text style={s.emptySub}>Upload images or PDFs to share with the group</Text>
           </View>
@@ -353,7 +353,7 @@ export default function MediaScreen({ route, navigation }) {
           disabled={uploading}
           activeOpacity={0.85}
         >
-          <Ionicons name="image-outline" size={19} color={COLORS.onPrimary} />
+          <Ionicons name="image-outline" size={19} color={COLORS.primaryBtnText} />
           <Text style={s.uploadBtnText}>Images</Text>
         </TouchableOpacity>
 
@@ -491,10 +491,10 @@ function makeStyles(COLORS) {
     emptyState: { alignItems: 'center', paddingTop: 80, gap: 8 },
     emptyTitle: {
       fontSize: 16, fontWeight: '700',
-      color: COLORS.border, marginTop: 8,
+      color: COLORS.textSecondary, marginTop: 8,
     },
     emptySub: {
-      fontSize: 13, color: COLORS.border,
+      fontSize: 13, color: COLORS.textSecondary,
       textAlign: 'center', lineHeight: 20, paddingHorizontal: 32,
     },
 
