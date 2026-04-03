@@ -310,7 +310,7 @@ export default function ChatScreen({ route, navigation }) {
                 <Ionicons
                   name="chatbubbles-outline"
                   size={52}
-                  color={COLORS.tertiaryBtnText}
+                  color={COLORS.textSecondary}
                 />
                 <Text style={s.emptyChatTitle}>No messages yet</Text>
                 <Text style={s.emptyChatSub}>Say hello to the group</Text>
@@ -379,7 +379,7 @@ export default function ChatScreen({ route, navigation }) {
             {sending ? (
               <ActivityIndicator size="small" color={COLORS.onPrimary} />
             ) : (
-              <Ionicons name="send" size={18} color="green" />
+              <Ionicons name="send" size={18} color={COLORS.primaryBtnText} />
             )}
           </TouchableOpacity>
         </View>
@@ -553,10 +553,10 @@ function makeStyles(COLORS) {
     emptyChatTitle: {
       fontSize: 16,
       fontWeight: '700',
-      color: COLORS.tertiaryBtnText,
+      color: COLORS.textSecondary,
       marginTop: 16,
     },
-    emptyChatSub: { fontSize: 13, color: COLORS.tertiaryBtnText, marginTop: 6 },
+    emptyChatSub: { fontSize: 13, color: COLORS.textSecondary, marginTop: 6 },
 
     inputBar: {
       flexDirection: 'row',
@@ -604,6 +604,7 @@ function makeStyles(COLORS) {
       backgroundColor: COLORS.primaryBtn,
       alignItems: 'center',
       justifyContent: 'center',
+      padding: 0,
     },
     sendBtnDisabled: {
       opacity: 0.45,
