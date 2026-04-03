@@ -143,7 +143,7 @@ export default function FeedbackScreen({ navigation, route }) {
             <MaterialCommunityIcons
               name="book-open-page-variant"
               size={40}
-              color={COLORS.primary}
+              color={COLORS.primaryBtnText}
             />
           </View>
           <Text style={styles.brandName}>StudySphere</Text>
