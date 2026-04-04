@@ -109,6 +109,14 @@ export default function AppNavigator() {
               component={ChatScreen}
               options={{ animation: 'slide_from_bottom' }}
             />
+            <Stack.Screen
+              name="JoinRequests"
+              component={JoinRequestsScreen}
+              options={{
+                headerShown: true,
+                title: 'Join Requests',
+              }}
+            />
           </>
         )}
       </Stack.Navigator>

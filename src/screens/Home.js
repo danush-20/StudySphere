@@ -22,6 +22,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import * as Location from 'expo-location';
 import { useTheme } from '../context/ThemeContext';
+import { sendJoinRequest } from '../utils/joinRequestHelper';
+
 
 import { auth, db } from '../services/firebase';
 import { AuthContext } from '../context/AuthContext';
@@ -486,6 +488,7 @@ export default function Home({ navigation }) {
       });
       setJoinModalVisible(false);
       setJoinPin('');
+      await sendJoinRequest(groupId, groupName, pin);
       Alert.alert(
         'Request Sent',
         'Your join request has been sent to the host for approval.',

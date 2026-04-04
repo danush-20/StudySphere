@@ -40,6 +40,7 @@ import { AuthContext } from '../context/AuthContext';
 import { ref, onValue, off } from 'firebase/database';
 import { rtdb } from '../services/firebase';
 import { useTheme } from '../context/ThemeContext';
+import SimpleNotificationService from '../services/SimpleNotificationService';
 
 
 
@@ -184,6 +185,9 @@ export default function StudyGroupScreen({ route, navigation }) {
             clearInterval(intervalRef.current);
             setRunning(false);
             setStopped(false);
+            SimpleNotificationService.showTimerComplete(
+              groupName || 'Study Session',
+            );
             if (mode === 'study') {
               const newCount = sessionsCompleted + 1;
               setSessionsCompleted(newCount);
@@ -201,7 +205,7 @@ export default function StudyGroupScreen({ route, navigation }) {
       clearInterval(intervalRef.current);
     }
     return () => clearInterval(intervalRef.current);
-  }, [running]);
+  }, [running, groupName, sessionId, mode, sessionsCompleted]);
 
   // ─── Focus time counter ───────────────────────────────────────────────────
 
@@ -731,6 +735,28 @@ export default function StudyGroupScreen({ route, navigation }) {
               <Text style={styles.mediaBtnText}>Media</Text>
             </TouchableOpacity>
           </View>
+
+          {/* ADD YOUR NEW BUTTON HERE */}
+          {isHost && (
+            <TouchableOpacity
+              style={styles.joinRequestsBtn}
+              onPress={() =>
+                navigation.navigate('JoinRequests', {
+                  groupId: sessionId,
+                  groupName: groupName,
+                })
+              }
+            >
+              <Ionicons
+                name="people-circle-outline"
+                size={20}
+                color={COLORS.primary}
+              />
+              <Text style={styles.joinRequestsBtnText}>
+                Manage Join Requests
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {/* Members */}
           <View style={styles.membersHeader}>
@@ -1446,5 +1472,22 @@ const makeStyles = COLORS =>
       color: COLORS.primaryBtnText, // was COLORS.white
       fontWeight: '700',
       fontSize: 15,
+    },
+    joinRequestsBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: COLORS.surfaceHigh,
+      paddingVertical: 12,
+      borderRadius: 12,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: COLORS.primary + '40', // light primary border
+      gap: 8,
+    },
+    joinRequestsBtnText: {
+      color: COLORS.primary,
+      fontSize: 14,
+      fontWeight: '700',
     },
   });
