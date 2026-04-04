@@ -26,7 +26,7 @@ class SimpleNotificationService {
         await Notifications.setNotificationChannelAsync('default', {
           name: 'StudySphere',
           importance: Notifications.AndroidImportance.HIGH,
-          sound: 'default',
+          sound: true,
           vibrationPattern: [0, 250, 250, 250],
         });
       }
@@ -46,7 +46,7 @@ class SimpleNotificationService {
         content: {
           title: '⏰ Timer Complete!',
           body: `${sessionName} session has ended. Great work! 🎉`,
-          sound: 'default',
+          sound: true,
           data: { type: 'timer_complete' },
         },
         trigger: null, // Show immediately
@@ -64,7 +64,7 @@ class SimpleNotificationService {
         content: {
           title: '👋 New Join Request',
           body: `${userName} wants to join "${groupName}"`,
-          sound: 'default',
+          sound: true,
           data: {
             type: 'join_request',
             requestId,
@@ -98,8 +98,8 @@ class SimpleNotificationService {
 
   // Remove listener
   removeListener(subscription) {
-    if (subscription) {
-      Notifications.removeNotificationSubscription(subscription);
+    if (subscription && subscription.remove) {
+      subscription.remove();
     }
   }
 }

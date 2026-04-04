@@ -19,6 +19,7 @@ import ReportIssueScreen from "../screens/ReportIssueScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import MediaScreen from '../screens/MediaScreen';
 import ChatScreen from '../screens/ChatScreen';
+import JoinRequestsScreen from '../screens/JoinRequestsScreen';
 
 const Stack = createNativeStackNavigator();
 
