@@ -15,40 +15,19 @@
       },
       "oauth_client": [
         {
-          "client_id": "634668096541-7tuuah43lk4vckqbtmpbhthjtp05v1qf.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBm0iG2xL3g6aK0ATqe7hKyqgc1HDI-VWo"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "634668096541-7tuuah43lk4vckqbtmpbhthjtp05v1qf.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:634668096541:android:63888f0495c34acb64baf4",
-        "android_client_info": {
-          "package_name": "com.studysphere"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "634668096541-c4b8kqneka91pk52jk9os4cimatr0ds1.apps.googleusercontent.com",
+          "client_id": "634668096541-fq6b8ht76ajbruh2fphnkmk9opjjq5tp.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.studysphere",
+            "package_name": "com.drdont7.studysphere",
             "certificate_hash": "8eeecbda09ab6b2f762fdf3bad21984a024e8064"
+          }
+        },
+        {
+          "client_id": "634668096541-n33ea9omp0pbc42ppsc027d4o181b9nl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.drdont7.studysphere",
+            "certificate_hash": "4bf38466e804fa1e6a8863029a97609d9b080a38"
           }
         },
         {
