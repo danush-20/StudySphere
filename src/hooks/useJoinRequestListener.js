@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { database } from '../config/firebase';
-import { ref, onValue, off } from 'firebase/database';
+import { database } from '../services/firebase';
+  import { ref, onValue, off } from 'firebase/database';
 import SimpleNotificationService from '../services/SimpleNotificationService';
 
 export const useJoinRequestListener = (userId, userGroups) => {
