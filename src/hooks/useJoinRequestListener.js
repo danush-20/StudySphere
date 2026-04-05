@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { database } from '../services/firebase';
-  import { ref, onValue, off } from 'firebase/database';
+import { db } from '../services/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 import SimpleNotificationService from '../services/SimpleNotificationService';
 
 export const useJoinRequestListener = (userId, userGroups) => {
@@ -9,47 +9,42 @@ export const useJoinRequestListener = (userId, userGroups) => {
   useEffect(() => {
     if (!userId || !userGroups || userGroups.length === 0) return;
 
-    const listeners = [];
+    const unsubscribers = [];
 
-    // Listen to join requests for each group the user hosts
     userGroups.forEach(group => {
-      if (group.hostId === userId) {
-        const requestsRef = ref(database, `join_requests/${group.id}`);
+      if (group.host === userId) {
+        const sessionRef = doc(db, 'studySessions', group.id);
 
-        const listener = onValue(requestsRef, snapshot => {
-          if (snapshot.exists()) {
-            const requests = snapshot.val();
+        const unsubscribe = onSnapshot(sessionRef, snapshot => {
+          if (!snapshot.exists()) return;
 
-            // Check for new pending requests
-            Object.entries(requests).forEach(([requestId, request]) => {
-              // Only show notification for pending requests we haven't processed yet
-              if (
-                request.status === 'pending' &&
-                !processedRequestsRef.current.has(requestId)
-              ) {
-                // Mark as processed
-                processedRequestsRef.current.add(requestId);
+          const data = snapshot.data();
+          const joinRequests = data.joinRequests || [];
 
-                // Show notification
-                SimpleNotificationService.showJoinRequest(
-                  requestId,
-                  request.userName,
-                  group.name,
-                );
-              }
-            });
-          }
+          joinRequests.forEach(request => {
+            // Unique key per request
+            const requestKey = `${group.id}_${request.uid}_${request.requestedAt}`;
+
+            if (!processedRequestsRef.current.has(requestKey)) {
+              processedRequestsRef.current.add(requestKey);
+
+              // Show notification — works even if host is in study session
+              SimpleNotificationService.showJoinRequest(
+                requestKey,
+                request.username,
+                group.groupName,
+                group.id,
+              );
+            }
+          });
         });
 
-        listeners.push({ ref: requestsRef, listener });
+        unsubscribers.push(unsubscribe);
       }
     });
 
-    // Cleanup
     return () => {
-      listeners.forEach(({ ref: dbRef }) => {
-        off(dbRef);
-      });
+      unsubscribers.forEach(unsub => unsub());
       processedRequestsRef.current.clear();
     };
   }, [userId, userGroups]);

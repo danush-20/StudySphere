@@ -6,30 +6,35 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
-import { database, auth } from '../config/firebase';
-import { ref, onValue, update } from 'firebase/database';
-import { makeStyles } from '../theme/ThemeContext';
+import { db } from '../services/firebase';
+import { doc, onSnapshot, updateDoc, arrayRemove } from 'firebase/firestore';
+import { useTheme } from '../context/ThemeContext';
 
 const JoinRequestsScreen = ({ route, navigation }) => {
   const { groupId, groupName } = route.params;
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
-  const styles = useStyles();
+  const { COLORS } = useTheme();
+  const styles = makeStyles(COLORS);
 
   useEffect(() => {
-    const requestsRef = ref(database, `join_requests/${groupId}`);
+    const sessionRef = doc(db, 'studySessions', groupId);
 
-    const unsubscribe = onValue(requestsRef, snapshot => {
+    const unsubscribe = onSnapshot(sessionRef, snapshot => {
       if (snapshot.exists()) {
-        const data = snapshot.val();
-        const requestList = Object.entries(data)
-          .filter(([_, req]) => req.status === 'pending')
-          .map(([id, req]) => ({ id, ...req }))
-          .sort((a, b) => b.timestamp - a.timestamp); // Newest first
+        const data = snapshot.data();
+        const joinRequests = (data.joinRequests || []).map(req => ({
+          id: `${req.uid}_${req.requestedAt}`,
+          userId: req.uid,
+          userName: req.username,
+          timestamp: new Date(req.requestedAt).getTime(),
+          raw: req,
+        }));
 
-        setRequests(requestList);
+        setRequests(joinRequests.sort((a, b) => b.timestamp - a.timestamp));
       } else {
         setRequests([]);
       }
@@ -39,21 +44,20 @@ const JoinRequestsScreen = ({ route, navigation }) => {
     return () => unsubscribe();
   }, [groupId]);
 
-  const handleAccept = async (requestId, userId, userName) => {
+  const handleAccept = async request => {
     try {
-      setProcessingId(requestId);
+      setProcessingId(request.id);
+      const sessionRef = doc(db, 'studySessions', groupId);
 
-      const updates = {};
-      // Update request status
-      updates[`join_requests/${groupId}/${requestId}/status`] = 'accepted';
-      // Add user to group members
-      updates[`study_groups/${groupId}/members/${userId}`] = {
-        joinedAt: Date.now(),
-        name: userName,
-      };
+      await updateDoc(sessionRef, {
+        [`members.${request.userId}`]: true,
+        joinRequests: arrayRemove(request.raw),
+      });
 
-      await update(ref(database), updates);
-      Alert.alert('✅ Accepted', `${userName} has been added to the group`);
+      Alert.alert(
+        '✅ Accepted',
+        `${request.userName} has been added to the group`,
+      );
     } catch (error) {
       console.error('Error accepting request:', error);
       Alert.alert('Error', error.message);
@@ -62,14 +66,16 @@ const JoinRequestsScreen = ({ route, navigation }) => {
     }
   };
 
-  const handleReject = async (requestId, userName) => {
+  const handleReject = async request => {
     try {
-      setProcessingId(requestId);
+      setProcessingId(request.id);
+      const sessionRef = doc(db, 'studySessions', groupId);
 
-      await update(ref(database, `join_requests/${groupId}/${requestId}`), {
-        status: 'rejected',
+      await updateDoc(sessionRef, {
+        joinRequests: arrayRemove(request.raw),
       });
-      Alert.alert('Rejected', `${userName}'s request was rejected`);
+
+      Alert.alert('Rejected', `${request.userName}'s request was rejected`);
     } catch (error) {
       console.error('Error rejecting request:', error);
       Alert.alert('Error', error.message);
@@ -89,22 +95,19 @@ const JoinRequestsScreen = ({ route, navigation }) => {
 
       <View style={styles.actions}>
         {processingId === item.id ? (
-          <ActivityIndicator
-            size="small"
-            color={styles.loadingIndicator.color}
-          />
+          <ActivityIndicator size="small" color={COLORS.primaryBtn} />
         ) : (
           <>
             <TouchableOpacity
               style={[styles.actionBtn, styles.acceptBtn]}
-              onPress={() => handleAccept(item.id, item.userId, item.userName)}
+              onPress={() => handleAccept(item)}
             >
               <Text style={styles.actionBtnText}>✓</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.actionBtn, styles.rejectBtn]}
-              onPress={() => handleReject(item.id, item.userName)}
+              onPress={() => handleReject(item)}
             >
               <Text style={styles.actionBtnText}>✕</Text>
             </TouchableOpacity>
@@ -117,7 +120,7 @@ const JoinRequestsScreen = ({ route, navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={styles.loadingIndicator.color} />
+        <ActivityIndicator size="large" color={COLORS.primaryBtn} />
       </View>
     );
   }
@@ -145,93 +148,91 @@ const JoinRequestsScreen = ({ route, navigation }) => {
   );
 };
 
-const useStyles = makeStyles(COLORS => ({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingIndicator: {
-    color: COLORS.primaryBtn,
-  },
-  header: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  listContent: {
-    padding: 16,
-  },
-  requestCard: {
-    backgroundColor: COLORS.cardBg,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  requestInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  timestamp: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  acceptBtn: {
-    backgroundColor: '#10b981',
-  },
-  rejectBtn: {
-    backgroundColor: '#ef4444',
-  },
-  actionBtnText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: COLORS.textSecondary,
-    fontSize: 16,
-  },
-}));
+const makeStyles = COLORS =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
+    loadingContainer: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    header: {
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.border,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: COLORS.text,
+      marginBottom: 4,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: COLORS.textSecondary,
+    },
+    listContent: {
+      padding: 16,
+    },
+    requestCard: {
+      backgroundColor: COLORS.cardBg,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 12,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: COLORS.border,
+    },
+    requestInfo: {
+      flex: 1,
+    },
+    userName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: COLORS.text,
+      marginBottom: 4,
+    },
+    timestamp: {
+      fontSize: 12,
+      color: COLORS.textSecondary,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    actionBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    acceptBtn: {
+      backgroundColor: '#10b981',
+    },
+    rejectBtn: {
+      backgroundColor: '#ef4444',
+    },
+    actionBtnText: {
+      color: '#fff',
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emptyText: {
+      color: COLORS.textSecondary,
+      fontSize: 16,
+    },
+  });
 
 export default JoinRequestsScreen;

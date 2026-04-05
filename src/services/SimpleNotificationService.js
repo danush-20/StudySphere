@@ -4,7 +4,8 @@ import { Platform } from 'react-native';
 // Show notifications when app is open
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -13,7 +14,6 @@ Notifications.setNotificationHandler({
 class SimpleNotificationService {
   async init() {
     try {
-      // Request basic permissions
       const { status } = await Notifications.requestPermissionsAsync();
 
       if (status !== 'granted') {
@@ -21,7 +21,6 @@ class SimpleNotificationService {
         return false;
       }
 
-      // Setup Android channel
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {
           name: 'StudySphere',
@@ -49,7 +48,7 @@ class SimpleNotificationService {
           sound: true,
           data: { type: 'timer_complete' },
         },
-        trigger: null, // Show immediately
+        trigger: null,
       });
       console.log('Timer notification sent');
     } catch (error) {
@@ -57,8 +56,8 @@ class SimpleNotificationService {
     }
   }
 
-  // Join request notification
-  async showJoinRequest(requestId, userName, groupName) {
+  // Join request notification — now includes groupId
+  async showJoinRequest(requestId, userName, groupName, groupId) {
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
@@ -70,9 +69,10 @@ class SimpleNotificationService {
             requestId,
             userName,
             groupName,
+            groupId, // ← added
           },
         },
-        trigger: null, // Show immediately
+        trigger: null,
       });
       console.log('Join request notification sent');
     } catch (error) {

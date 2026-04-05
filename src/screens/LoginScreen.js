@@ -23,6 +23,8 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 GoogleSignin.configure({
   webClientId:
     '634668096541-7tuuah43lk4vckqbtmpbhthjtp05v1qf.apps.googleusercontent.com',
+  androidClientId:
+    '634668096541-n33ea9omp0pbc42ppsc027d4o181b9nl.apps.googleusercontent.com',
 });
 
 export default function LoginScreen({ navigation, route }) {
@@ -138,7 +140,7 @@ export default function LoginScreen({ navigation, route }) {
               onPress={handleLogin}
               activeOpacity={0.8}
             >
-              <Text style={styles.loginButtonText}>Login</Text>
+              <Text style={styles.loginButtonText}>Login </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
