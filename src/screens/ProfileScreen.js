@@ -497,7 +497,7 @@ const makeStyles = COLORS =>
       overflow: 'hidden',
       marginTop: 4,
     },
-    picker: { height: 44, color: COLORS.text },
+    picker: { height: 50, color: COLORS.text },
 
     // Theme toggle
     themeToggle: {
