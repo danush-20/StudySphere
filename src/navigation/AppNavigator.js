@@ -19,9 +19,11 @@ import ReportIssueScreen from "../screens/ReportIssueScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import MediaScreen from '../screens/MediaScreen';
 import ChatScreen from '../screens/ChatScreen';
+import JoinRequestsScreen from '../screens/JoinRequestsScreen';
+import { createNavigationContainerRef } from '@react-navigation/native';
 
 const Stack = createNativeStackNavigator();
-
+export const navigationRef = createNavigationContainerRef();
 
 export default function AppNavigator() {
   const { isDark } = useTheme();
@@ -42,7 +44,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={isDark ? '#0B1326' : '#F0F4F8'}
@@ -108,6 +110,14 @@ export default function AppNavigator() {
               name="Chat"
               component={ChatScreen}
               options={{ animation: 'slide_from_bottom' }}
+            />
+            <Stack.Screen
+              name="JoinRequests"
+              component={JoinRequestsScreen}
+              options={{
+                headerShown: true,
+                title: 'Join Requests',
+              }}
             />
           </>
         )}

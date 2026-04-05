@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -18,12 +18,14 @@ import { loginUser } from '../services/authService';
 import { auth } from '../services/firebase';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { useTheme } from '../context/ThemeContext';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-
-WebBrowser.maybeCompleteAuthSession();
-
+GoogleSignin.configure({
+  webClientId:
+    '634668096541-7tuuah43lk4vckqbtmpbhthjtp05v1qf.apps.googleusercontent.com',
+  androidClientId:
+    '634668096541-n33ea9omp0pbc42ppsc027d4o181b9nl.apps.googleusercontent.com',
+});
 
 export default function LoginScreen({ navigation, route }) {
   const [email, setEmail] = useState('');
@@ -33,39 +35,26 @@ export default function LoginScreen({ navigation, route }) {
   const message = route?.params?.message;
   const styles = makeStyles(COLORS);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId:
-      '634668096541-h3den2c1pp10anb1l15rr2np9pjq2i2a.apps.googleusercontent.com',
-    webClientId:
-      '634668096541-h3den2c1pp10anb1l15rr2np9pjq2i2a.apps.googleusercontent.com',
-    androidClientId:
-      '634668096541-29jo0hfmri2v6ttaup3rm9nf0almfg0k.apps.googleusercontent.com',
-    responseType: 'id_token',
-    scopes: ['openid', 'profile', 'email'],
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const idToken = response.params?.id_token;
+  const handleGoogleLogin = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.data?.idToken;
 
       if (!idToken) {
-        console.log('No Google token received');
+        Alert.alert('Google Login Error', 'No token received');
         return;
       }
 
       const credential = GoogleAuthProvider.credential(idToken);
-
-      signInWithCredential(auth, credential)
-        .then(() => {
-          console.log('Google login success');
-          // AuthContext listener will switch screen automatically
-        })
-        .catch(error => {
-          console.log(error);
-          Alert.alert('Google Login Error', error.message);
-        });
+      await signInWithCredential(auth, credential);
+      console.log('Google login success');
+      // AuthContext listener will switch screen automatically
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Google Login Error', error.message);
     }
-  }, [response]);
+  };
 
   const handleLogin = async () => {
     try {
@@ -151,7 +140,7 @@ export default function LoginScreen({ navigation, route }) {
               onPress={handleLogin}
               activeOpacity={0.8}
             >
-              <Text style={styles.loginButtonText}>Login</Text>
+              <Text style={styles.loginButtonText}>Login </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -172,9 +161,8 @@ export default function LoginScreen({ navigation, route }) {
 
           {/* Google Login */}
           <TouchableOpacity
-            style={[styles.googleButton, !request && { opacity: 0.5 }]}
-            onPress={() => promptAsync()}
-            disabled={!request}
+            style={styles.googleButton}
+            onPress={handleGoogleLogin}
             activeOpacity={0.7}
           >
             <Text style={styles.googleButtonText}>Login with Google</Text>
@@ -185,7 +173,7 @@ export default function LoginScreen({ navigation, route }) {
   );
 }
 
-const makeStyles = (COLORS) =>
+const makeStyles = COLORS =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -212,18 +200,18 @@ const makeStyles = (COLORS) =>
     brandName: {
       fontSize: 32,
       fontWeight: '800',
-      color: COLORS.text, // was COLORS.primary — in dark, primary is light blue accent, text is better
+      color: COLORS.text,
       letterSpacing: -1,
     },
     brandTagline: {
       fontSize: 10,
       fontWeight: '700',
-      color: COLORS.textSecondary, // was COLORS.accent — textSecondary reads more naturally here
+      color: COLORS.textSecondary,
       letterSpacing: 2,
       marginTop: 4,
     },
     messageBanner: {
-      backgroundColor: COLORS.success + '22', // success color at ~13% opacity instead of hardcoded green
+      backgroundColor: COLORS.success + '22',
       padding: 12,
       borderRadius: 8,
       marginBottom: 20,
@@ -231,7 +219,7 @@ const makeStyles = (COLORS) =>
       borderColor: COLORS.success,
     },
     messageText: {
-      color: COLORS.success, // was hardcoded #084832 (invisible in dark)
+      color: COLORS.success,
       fontSize: 14,
       textAlign: 'center',
     },
@@ -241,28 +229,28 @@ const makeStyles = (COLORS) =>
     label: {
       fontSize: 10,
       fontWeight: '800',
-      color: COLORS.textSecondary, // was COLORS.accent
+      color: COLORS.textSecondary,
       marginBottom: 8,
       letterSpacing: 1,
     },
     input: {
-      backgroundColor: COLORS.inputBg, // was COLORS.secondary — inputBg is the right token for this
+      backgroundColor: COLORS.inputBg,
       borderRadius: 12,
       padding: 16,
       fontSize: 16,
       color: COLORS.text,
       marginBottom: 20,
       borderWidth: 1,
-      borderColor: COLORS.border, // added — gives definition in dark mode
+      borderColor: COLORS.border,
     },
     passwordContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: COLORS.inputBg, // was COLORS.secondary
+      backgroundColor: COLORS.inputBg,
       borderRadius: 12,
       paddingHorizontal: 16,
       borderWidth: 1,
-      borderColor: COLORS.border, // added — matches input field
+      borderColor: COLORS.border,
     },
     passwordInput: {
       flex: 1,
@@ -283,18 +271,18 @@ const makeStyles = (COLORS) =>
       alignItems: 'center',
     },
     loginButton: {
-      backgroundColor: COLORS.primaryBtn, // was COLORS.primary — primaryBtn is dark navy in dark mode
+      backgroundColor: COLORS.primaryBtn,
     },
     loginButtonText: {
-      color: COLORS.primaryBtnText, // was COLORS.white — correct token
+      color: COLORS.primaryBtnText,
       fontSize: 16,
       fontWeight: '700',
     },
     signUpButton: {
-      backgroundColor: COLORS.secondaryBtn, // was hardcoded #D1E9FF
+      backgroundColor: COLORS.secondaryBtn,
     },
     signUpButtonText: {
-      color: COLORS.secondaryBtnText, // was COLORS.primary — correct token
+      color: COLORS.secondaryBtnText,
       fontSize: 16,
       fontWeight: '700',
     },
@@ -312,7 +300,7 @@ const makeStyles = (COLORS) =>
     dividerText: {
       fontSize: 10,
       fontWeight: '700',
-      color: COLORS.textSecondary, // was COLORS.accent
+      color: COLORS.textSecondary,
       paddingHorizontal: 16,
       letterSpacing: 1,
     },
@@ -334,7 +322,7 @@ const makeStyles = (COLORS) =>
       width: 80,
       height: 80,
       borderRadius: 24,
-      backgroundColor: COLORS.primaryBtn, // was COLORS.primary — same reason as loginButton
+      backgroundColor: COLORS.primaryBtn,
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: 16,

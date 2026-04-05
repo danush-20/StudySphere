@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_number": "634668096541",
+    "firebase_url": "https://studysphere-a94b5-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "studysphere-a94b5",
+    "storage_bucket": "studysphere-a94b5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:634668096541:android:3823c5d7c230dc6f64baf4",
+        "android_client_info": {
+          "package_name": "com.drdont7.studysphere"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "634668096541-fq6b8ht76ajbruh2fphnkmk9opjjq5tp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.drdont7.studysphere",
+            "certificate_hash": "8eeecbda09ab6b2f762fdf3bad21984a024e8064"
+          }
+        },
+        {
+          "client_id": "634668096541-n33ea9omp0pbc42ppsc027d4o181b9nl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.drdont7.studysphere",
+            "certificate_hash": "4bf38466e804fa1e6a8863029a97609d9b080a38"
+          }
+        },
+        {
+          "client_id": "634668096541-7tuuah43lk4vckqbtmpbhthjtp05v1qf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBm0iG2xL3g6aK0ATqe7hKyqgc1HDI-VWo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "634668096541-7tuuah43lk4vckqbtmpbhthjtp05v1qf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
