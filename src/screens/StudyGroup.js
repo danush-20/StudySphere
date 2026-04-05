@@ -96,6 +96,7 @@ export default function StudyGroupScreen({ route, navigation }) {
   const [addingTask, setAddingTask] = useState(false);
 
   const sheetRef = useRef(null);
+  const scrollViewRef = useRef(null);
   const snapPoints = useMemo(() => ['12%', '45%', '80%'], []);
   const intervalRef = useRef(null);
 
@@ -454,6 +455,7 @@ export default function StudyGroupScreen({ route, navigation }) {
 
       {/* Scrollable main content */}
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -638,7 +640,15 @@ export default function StudyGroupScreen({ route, navigation }) {
           </View>
 
           {isHost && addingTask && (
-            <View style={styles.taskInputRow}>
+            <View
+              style={styles.taskInputRow}
+              onLayout={() => {
+                // Scroll to show input when it appears
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollToEnd({ animated: true });
+                }, 100);
+              }}
+            >
               <TextInput
                 style={styles.taskInput}
                 placeholder="Add a goal..."
@@ -648,6 +658,12 @@ export default function StudyGroupScreen({ route, navigation }) {
                 onSubmitEditing={handleAddTask}
                 returnKeyType="done"
                 autoFocus
+                onFocus={() => {
+                  // Scroll when keyboard opens
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 150);
+                }}
               />
               <TouchableOpacity
                 style={styles.taskAddBtn}
@@ -684,7 +700,7 @@ export default function StudyGroupScreen({ route, navigation }) {
         </Animated.View>
 
         {/* Bottom padding so sheet doesn't cover content */}
-        <View style={{ height: 200 }} />
+        <View style={{ height: 450 }} />
       </ScrollView>
 
       {/* Bottom Sheet */}
