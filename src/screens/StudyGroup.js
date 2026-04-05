@@ -40,9 +40,6 @@ import { AuthContext } from '../context/AuthContext';
 import { ref, onValue, off } from 'firebase/database';
 import { rtdb } from '../services/firebase';
 import { useTheme } from '../context/ThemeContext';
-import SimpleNotificationService from '../services/SimpleNotificationService';
-
-
 
 const AVATAR_IMAGES = {
   1: require('../../assets/Avatar-1.png'),
@@ -97,6 +94,7 @@ export default function StudyGroupScreen({ route, navigation }) {
   const [addingTask, setAddingTask] = useState(false);
 
   const sheetRef = useRef(null);
+  const scrollViewRef = useRef(null);
   const snapPoints = useMemo(() => ['12%', '45%', '80%'], []);
   const intervalRef = useRef(null);
 
@@ -185,9 +183,6 @@ export default function StudyGroupScreen({ route, navigation }) {
             clearInterval(intervalRef.current);
             setRunning(false);
             setStopped(false);
-            SimpleNotificationService.showTimerComplete(
-              groupName || 'Study Session',
-            );
             if (mode === 'study') {
               const newCount = sessionsCompleted + 1;
               setSessionsCompleted(newCount);
@@ -205,7 +200,7 @@ export default function StudyGroupScreen({ route, navigation }) {
       clearInterval(intervalRef.current);
     }
     return () => clearInterval(intervalRef.current);
-  }, [running, groupName, sessionId, mode, sessionsCompleted]);
+  }, [running]);
 
   // ─── Focus time counter ───────────────────────────────────────────────────
 
@@ -407,7 +402,6 @@ export default function StudyGroupScreen({ route, navigation }) {
         [`members.${uid}`]: false,
       });
       navigation.navigate('Feedback', { groupName, sessionId });
-
     } catch (e) {
       console.log('Leave error:', e.message);
     }
@@ -458,6 +452,7 @@ export default function StudyGroupScreen({ route, navigation }) {
 
       {/* Scrollable main content */}
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -642,7 +637,15 @@ export default function StudyGroupScreen({ route, navigation }) {
           </View>
 
           {isHost && addingTask && (
-            <View style={styles.taskInputRow}>
+            <View
+              style={styles.taskInputRow}
+              onLayout={() => {
+                // Scroll to show input when it appears
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollToEnd({ animated: true });
+                }, 100);
+              }}
+            >
               <TextInput
                 style={styles.taskInput}
                 placeholder="Add a goal..."
@@ -652,6 +655,12 @@ export default function StudyGroupScreen({ route, navigation }) {
                 onSubmitEditing={handleAddTask}
                 returnKeyType="done"
                 autoFocus
+                onFocus={() => {
+                  // Scroll when keyboard opens
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 150);
+                }}
               />
               <TouchableOpacity
                 style={styles.taskAddBtn}
@@ -688,7 +697,7 @@ export default function StudyGroupScreen({ route, navigation }) {
         </Animated.View>
 
         {/* Bottom padding so sheet doesn't cover content */}
-        <View style={{ height: 200 }} />
+        <View style={{ height: 450 }} />
       </ScrollView>
 
       {/* Bottom Sheet */}
@@ -735,28 +744,6 @@ export default function StudyGroupScreen({ route, navigation }) {
               <Text style={styles.mediaBtnText}>Media</Text>
             </TouchableOpacity>
           </View>
-
-          {/* ADD YOUR NEW BUTTON HERE */}
-          {isHost && (
-            <TouchableOpacity
-              style={styles.joinRequestsBtn}
-              onPress={() =>
-                navigation.navigate('JoinRequests', {
-                  groupId: sessionId,
-                  groupName: groupName,
-                })
-              }
-            >
-              <Ionicons
-                name="people-circle-outline"
-                size={20}
-                color={COLORS.primary}
-              />
-              <Text style={styles.joinRequestsBtnText}>
-                Manage Join Requests
-              </Text>
-            </TouchableOpacity>
-          )}
 
           {/* Members */}
           <View style={styles.membersHeader}>
@@ -1472,22 +1459,5 @@ const makeStyles = COLORS =>
       color: COLORS.primaryBtnText, // was COLORS.white
       fontWeight: '700',
       fontSize: 15,
-    },
-    joinRequestsBtn: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: COLORS.surfaceHigh,
-      paddingVertical: 12,
-      borderRadius: 12,
-      marginBottom: 20,
-      borderWidth: 1,
-      borderColor: COLORS.primary + '40', // light primary border
-      gap: 8,
-    },
-    joinRequestsBtnText: {
-      color: COLORS.primary,
-      fontSize: 14,
-      fontWeight: '700',
     },
   });
