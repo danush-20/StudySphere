@@ -113,7 +113,7 @@ export default function FeedbackScreen({ navigation, route }) {
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={styles.backBtn}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.navigate("Home")}
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={22} color={COLORS.primary} />

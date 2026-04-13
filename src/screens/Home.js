@@ -950,6 +950,15 @@ export default function Home({ navigation }) {
                 style={styles.toggleRow}
                 onPress={() => setIsPublic(!isPublic)}
               >
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.toggleLabel}>
+                    {isPublic ? '🌍 Public Group' : '🌍 Public Group'}
+                  </Text>
+                  <Text style={styles.toggleSub}>
+                    {isPublic
+                      ? 'Visible to nearby users'
+                      : 'Visible to nearby users'}
+                  </Text>
                 <View
                   style={[
                     styles.toggleSwitch,
@@ -963,15 +972,7 @@ export default function Home({ navigation }) {
                     ]}
                   />
                 </View>
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={styles.toggleLabel}>
-                    {isPublic ? '🌍 Public Group' : '🔒 Private Group'}
-                  </Text>
-                  <Text style={styles.toggleSub}>
-                    {isPublic
-                      ? 'Visible to nearby users'
-                      : 'Only joinable via PIN'}
-                  </Text>
+                
                 </View>
               </TouchableOpacity>
 
@@ -1076,7 +1077,7 @@ export default function Home({ navigation }) {
                 onPress={handleCreateSession}
               >
                 <Text style={styles.modalPrimaryButtonText}>
-                  {isPublic ? 'Create Public Group' : 'Create Group'}
+                  {isPublic ? 'Create Public Group' : 'Create Private Group'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
